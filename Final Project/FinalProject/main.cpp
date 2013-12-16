@@ -1,35 +1,46 @@
-//
-//  main.cpp
-//  FinalProject
-//
-//  Created by Michael Liut on 12/7/2013.
-//  Copyright (c) 2013 Michael Liut. All rights reserved.
-//
+/*
+ * Michael Liut - 1132938
+ * Brandon Da Silva - 1144604
+ * Daniel Esteves - 1152328
+ * December 12, 2013
+ * CS 3GC3
+ * Final Project - main.cpp
+ */
 
-//Mac Imports
-#include <GLUT/glut.h>
-#include <stdio.h>
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
+/* Mac Imports */
+    //moved to bullet.h
 
-//Generic Imports
-#include <stdio.h>
+/* Generic Imports */
 #include <time.h>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <sstream>
 #include <cmath>
-#include <math.h>
+#include <vector>
+
+/* New Class Imports */
+#include "bullet.h"
 
 /* Define Special Keys */
 #define ESCAPE 27
 #define SPACEBAR 32
 
-//Global Variables
-static GLfloat translate = 0.0f;
+/* Global Variables */
 bool movingRight = true;
+static GLfloat translate = 0.0f;
+using namespace std;
 
+/* Camera & Mouse Variables */
+float xPos = 10.0f, yPos = 10.0f, zPos = 10.0f;
+float xRot = 40.0f, yRot = -40.0f, angle = 0.0f;
+float lastX, lastY;
+
+/* Create Vector Lists */
+std::vector<bullet> bulletList;
+
+/* Create Objects */
+bullet* golden = new bullet(xPos, yPos, zPos, xRot, yRot, angle);
 
 //Sphere
 void sphere()
@@ -85,7 +96,7 @@ void drawAxis()
 }
 
 
-//Display
+/* Display Function */
 void display()
 {
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
@@ -94,13 +105,25 @@ void display()
     gluLookAt(3, 3, 5, 0, 0, 0, 0, 1, 0);
     
     drawAxis();
-    
     glTranslatef(translate, 0.0f, 0.0f);
-
     sphere();
+    
+//    for(int i = 0; i < bulletList.size(); i++){
+//        bulletList[i].update();
+//    }
     
     glutPostRedisplay();
     glutSwapBuffers();
+    
+    angle++;
+}
+
+/* Camera Function */
+void camera (void)
+{
+    glRotatef(xRot, 1.0, 0.0, 0.0);  //rotate our camera on the x-axis (left and right)
+    glRotatef(yRot, 0.0, 1.0, 0.0);  //rotate our camera on the  y-axis (up and down)
+    glTranslated(-xPos, -yPos, -zPos); //translate the screen to the position of our camera
 }
 
 
@@ -112,6 +135,20 @@ void keyboard(unsigned char key, int x, int y)
         printf("%s\n", "Program Terminated!");
         exit(0);
     }
+    
+    if (key == SPACEBAR){
+        golden -> shoot(xPos, yPos, zPos);
+    }
+}
+
+void mouseMovement(int x, int y)
+{
+    int diffX = x - lastX; //check the difference between the current x and the last x position
+    int diffY = y - lastY; //check the difference between the current y and the last y position
+    lastX = x; //set lastx to the current x position
+    lastY = y; //set lasty to the current y position
+    xRot += (float) diffY; //set the xrot to xrot with the addition of the difference in the y position
+    yRot += (float) diffX;    //set the xrot to yrot with the addition of the difference in the x position
 }
 
 //Initialize Function - Initializes the Colour, Matrix Mode, & Perspective
@@ -146,6 +183,7 @@ int main(int argc, char** argv){
     
     // Glut calls keyboard, display and spin functions - created above
 	glutKeyboardFunc(keyboard);
+    glutPassiveMotionFunc(mouseMovement); //check for mouse movement
     glutDisplayFunc(display);
     glutIdleFunc(moveSphere);
     
