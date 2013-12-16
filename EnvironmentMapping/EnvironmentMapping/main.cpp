@@ -5,6 +5,7 @@
  be implemented into the final project.
  
  Brandon Da Silva - 1057434
+ Michael Liut - 1132938
 */
 
 #include <stdlib.h>
