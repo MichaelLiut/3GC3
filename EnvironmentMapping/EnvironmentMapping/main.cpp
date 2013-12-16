@@ -19,6 +19,7 @@
 #define ESCAPE 27
 #define SPACEBAR 32
 
+
 using namespace std;
 
 // Global variables for the screen size
@@ -39,6 +40,9 @@ float zRot = 0;
 void reset();
 void sceneRotate(void);
 
+
+
+
 void init(void) {
     glClearColor(0,0,0,0);
     
@@ -56,6 +60,8 @@ void display(void) {
     
     glColor3f(0, 1, 1);
     glutSolidCube(10);
+    
+    
     
     
     glColor3f(1,1,1);

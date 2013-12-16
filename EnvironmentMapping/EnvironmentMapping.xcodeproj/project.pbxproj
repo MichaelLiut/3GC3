@@ -11,6 +11,7 @@
 		64A76A59185E677B00BCC1D2 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 64A76A58185E677B00BCC1D2 /* OpenGL.framework */; };
 		64A76A5B185E678000BCC1D2 /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 64A76A5A185E678000BCC1D2 /* GLUT.framework */; };
 		64A76A5E185E67B400BCC1D2 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 64A76A5C185E67B400BCC1D2 /* main.cpp */; };
+		64A76A7F185EA4C200BCC1D2 /* cubemap_texture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 64A76A7D185EA4C200BCC1D2 /* cubemap_texture.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -32,6 +33,8 @@
 		64A76A58185E677B00BCC1D2 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		64A76A5A185E678000BCC1D2 /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
 		64A76A5C185E67B400BCC1D2 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		64A76A7D185EA4C200BCC1D2 /* cubemap_texture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = cubemap_texture.cpp; sourceTree = "<group>"; };
+		64A76A7E185EA4C200BCC1D2 /* cubemap_texture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cubemap_texture.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -78,8 +81,10 @@
 		64A76A4C185E674A00BCC1D2 /* EnvironmentMapping */ = {
 			isa = PBXGroup;
 			children = (
-				64A76A4F185E674A00BCC1D2 /* Supporting Files */,
+				64A76A7D185EA4C200BCC1D2 /* cubemap_texture.cpp */,
+				64A76A7E185EA4C200BCC1D2 /* cubemap_texture.h */,
 				64A76A5C185E67B400BCC1D2 /* main.cpp */,
+				64A76A4F185E674A00BCC1D2 /* Supporting Files */,
 			);
 			path = EnvironmentMapping;
 			sourceTree = "<group>";
@@ -144,6 +149,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				64A76A5E185E67B400BCC1D2 /* main.cpp in Sources */,
+				64A76A7F185EA4C200BCC1D2 /* cubemap_texture.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -255,6 +261,7 @@
 				64A76A57185E674B00BCC1D2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
