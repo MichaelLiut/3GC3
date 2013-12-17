@@ -141,6 +141,7 @@ void keyboard(unsigned char key, int x, int y)
     }
 }
 
+/* Mouse Function */
 void mouseMovement(int x, int y)
 {
     int diffX = x - lastX; //check the difference between the current x and the last x position
@@ -166,7 +167,6 @@ void init()
 	glLoadIdentity();
     gluPerspective(45, 1, 1, 200);
 }
-
 
 //Main Method
 int main(int argc, char** argv){
