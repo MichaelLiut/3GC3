@@ -46,8 +46,42 @@ int initNumParticles = 150;
 vector<Particle> particleVector; // Vector of all the particles drawn to reference
 
 
+// LIGHTING AND MATERIALS
+float light0_pos[] = {0, 2, -250, 1};
+float testobj[] = {50, 50, 50, 1};
+
+struct materialStruct {
+    float ambient[4];
+    float diffuse[4];
+    float specular[4];
+    float shininess;
+} materialStruct;
+
+float emission[4] = {0.6, 0.6, 0.6, 0.0};
+
+struct materialStruct silverMat = {
+    {0.33, 0.22, 0.03, 1.0},
+    {0.78, 0.57, 0.11, 1.0},
+    {0.99, 0.91, 0.81, 1.0},
+    35.0
+};
+
+struct materialStruct asterMat = {
+    {0.33, 0.22, 0.03, 1.0},
+    {0.78, 0.57, 0.11, 1.0},
+    {0.99, 0.91, 0.81, 1.0},
+    35.0
+};
+
+struct materialStruct goldMat = {
+    {0.33, 0.22, 0.03, 1.0},
+    {0.78, 0.57, 0.11, 1.0},
+    {0.99, 0.91, 0.81, 1.0},
+    27.8
+};
+
 // Initial position of the camera
-float camPos[] = {150, 150, 150};
+float camPos[] = {0, 100, 100};
 
 // Scene Rotation Properties
 float xRot = 0;
@@ -188,8 +222,8 @@ void loadSkybox() {
     for (int i = 0; i < 6; i++) {
 		glBindTexture(GL_TEXTURE_2D, skybox[i]);
         
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         
@@ -199,77 +233,96 @@ void loadSkybox() {
 }
 
 void Skybox() {
-    loadSkybox();
     // Store the current matrix
     glPushMatrix();
+    glScalef(500,500,500);
     
-    glLoadIdentity();
-    gluLookAt(0,0,0, camPos[0], camPos[1], camPos[2], 0,1,0);
-    
-    glPushAttrib(GL_ENABLE_BIT);
     glEnable(GL_TEXTURE_2D);
     glDisable(GL_DEPTH_TEST);
-    glDisable(GL_LIGHTING);
-    glDisable(GL_BLEND);
+    glEnable(GL_LIGHTING);
+    glDisable(GL_CULL_FACE);
     
     // Just in case we set the vertices to white
     glColor4f(1,1,1,1);
     
-    // Render the front quad
-    glBindTexture(GL_TEXTURE_2D, skybox[0]);
-    glBegin(GL_QUADS);
-        glTexCoord2f(0,0); glVertex3f(0.5f, -0.5f, -0.5f);
-        glTexCoord2f(1,0); glVertex3f(-0.5f, -0.5f, -0.5f);
-        glTexCoord2f(1,1); glVertex3f(-0.5f, 0.5f, -0.5f);
-        glTexCoord2f(0,1); glVertex3f(0.5f, 0.5f, 0.5f);
-    glEnd();
-    
-    // Render the left quad
-    glBindTexture(GL_TEXTURE_2D, skybox[1]);
-    glBegin(GL_QUADS);
-        glTexCoord2f(0,0); glVertex3f(0.5f, -0.5f, 0.5f);
-        glTexCoord2f(1,0); glVertex3f(0.5f, -0.5f, -0.5f);
-        glTexCoord2f(1,1); glVertex3f(0.5f, 0.5f, -0.5f);
-        glTexCoord2f(0,1); glVertex3f(0.5f, 0.5f, 0.5f);
-    glEnd();
-    
-    // Render the back quad
-    glBindTexture(GL_TEXTURE_2D, skybox[2]);
-    glBegin(GL_QUADS);
-        glTexCoord2f(0,0); glVertex3f(-0.5f, -0.5f, 0.5f);
-        glTexCoord2f(1,0); glVertex3f(0.5f, -0.5f, 0.5f);
-        glTexCoord2f(1,1); glVertex3f(0.5f, 0.5f, 0.5f);
-        glTexCoord2f(0,1); glVertex3f(-0.5f, 0.5f, 0.5f);
-    glEnd();
-    
-    // Render the right quad
-    glBindTexture(GL_TEXTURE_2D, skybox[3]);
-    glBegin(GL_QUADS);
-        glTexCoord2f(0,0); glVertex3f(-0.5f, -0.5f, -0.5f);
-        glTexCoord2f(1,0); glVertex3f(-0.5f, -0.5f, 0.5f);
-        glTexCoord2f(1,1); glVertex3f(-0.5f, 0.5f, 0.5f);
-        glTexCoord2f(0,1); glVertex3f(-0.5f, 0.5f, -0.5f);
-    glEnd();
-    
-    // Render the top quad
+    // Render top face
     glBindTexture(GL_TEXTURE_2D, skybox[4]);
     glBegin(GL_QUADS);
-        glTexCoord2f(0,0); glVertex3f(-0.5f, 0.5f, -0.5f);
-        glTexCoord2f(1,0); glVertex3f(-0.5f, 0.5f, 0.5f);
-        glTexCoord2f(1,1); glVertex3f(0.5f, 0.5f, 0.5f);
-        glTexCoord2f(0,1); glVertex3f(0.5f, 0.5f, -0.5f);
+        glTexCoord2f(0,0);
+        glVertex3f(0.5f, 0.5f, -0.5f);
+        glTexCoord2f(0,1);
+        glVertex3f(-0.5f, 0.5f, -0.5f);
+        glTexCoord2f(1,1);
+        glVertex3f(-0.5f, 0.5f, 0.5f);
+        glTexCoord2f(1,0);
+        glVertex3f(0.5f, 0.5f, 0.5f);
     glEnd();
     
-    // Render the bottom quad
+    // Render front face
+    glBindTexture(GL_TEXTURE_2D, skybox[0]);
+    glBegin(GL_QUADS);
+        glTexCoord2f(1,0);
+        glVertex3f(0.5f, -0.5f, -0.5f);
+        glTexCoord2f(1,1);
+        glVertex3f(0.5f, 0.5f, -0.5f);
+        glTexCoord2f(0,1);
+        glVertex3f(-0.5f, 0.5f, -0.5f);
+        glTexCoord2f(0,0);
+        glVertex3f(-0.5f, -0.5f, -0.5f);
+    glEnd();
+    
+    // Render bottom face
     glBindTexture(GL_TEXTURE_2D, skybox[5]);
     glBegin(GL_QUADS);
-        glTexCoord2f(0,0); glVertex3f(-0.5f, -0.5f, -0.5f);
-        glTexCoord2f(1,0); glVertex3f(-0.5f, -0.5f, 0.5f);
-        glTexCoord2f(1,1); glVertex3f(0.5f, -0.5f, 0.5f);
-        glTexCoord2f(0,1); glVertex3f(0.5f, -0.5f, -0.5f);
+        glTexCoord2f(0,0);
+        glVertex3f(0.5f, -0.5f, -0.5f);
+        glTexCoord2f(0,1);
+        glVertex3f(-0.5f, -0.5f, -0.5f);
+        glTexCoord2f(1,1);
+        glVertex3f(-0.5f, -0.5f, 0.5f);
+        glTexCoord2f(1,0);
+        glVertex3f(0.5f, -0.5f, 0.5f);
     glEnd();
     
-    glPopAttrib();
+    // Render back face
+    glBindTexture(GL_TEXTURE_2D, skybox[2]);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0,0);
+        glVertex3f(0.5f, -0.5f, 0.5f);
+        glTexCoord2f(0,1);
+        glVertex3f(0.5f, 0.5f, 0.5f);
+        glTexCoord2f(1,1);
+        glVertex3f(-0.5f, 0.5f, 0.5f);
+        glTexCoord2f(1,0);
+        glVertex3f(-0.5f, -0.5f, 0.5f);
+    glEnd();
+    
+    // Render left face
+    glBindTexture(GL_TEXTURE_2D, skybox[1]);
+    glBegin(GL_QUADS);
+        glTexCoord2f(1,0);
+        glVertex3f(-0.5f, 0.5f, -0.5f);
+        glTexCoord2f(0,0);
+        glVertex3f(-0.5f, 0.5f, 0.5f);
+        glTexCoord2f(0,1);
+        glVertex3f(-0.5f, -0.5f, 0.5f);
+        glTexCoord2f(1,1);
+        glVertex3f(-0.5f, -0.5f, -0.5f);
+    glEnd();
+    
+    // Render right face
+    glBindTexture(GL_TEXTURE_2D, skybox[2]);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0,1);
+        glVertex3f(0.5f, 0.5f, -0.5f);
+        glTexCoord2f(1,1);
+        glVertex3f(0.5f, 0.5f, 0.5f);
+        glTexCoord2f(1,0);
+        glVertex3f(0.5f, -0.5f, 0.5f);
+        glTexCoord2f(0,0);
+        glVertex3f(0.5f, -0.5f, -0.5f);
+    glEnd();
+    
     glPopMatrix();
     glDisable(GL_TEXTURE_2D);
 }
@@ -277,13 +330,49 @@ void Skybox() {
 void init(void) {
     glClearColor(0,0,0,0);
     
-    
-    Skybox();
+    loadSkybox();
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    
+    float light0_amb[4] = { 0.0, 0.0, 0.0, 1.0};
+	float light0_diff[4] = {1.0, 1.0, 1.0, 1.0};
+	float light0_spec[4] = {1.0, 1.0, 1.0, 1.0};
+    
+	glLightfv(GL_LIGHT0, GL_AMBIENT, light0_amb);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, light0_diff);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, light0_spec);
+	glLightfv(GL_LIGHT0, GL_POSITION, light0_pos);
+    
     glMatrixMode(GL_PROJECTION);
     
     glutPostRedisplay();
+}
+
+// Draw and update the light source
+void light() {
+    glPushMatrix();
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, silverMat.ambient);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, silverMat.diffuse);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, silverMat.specular);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);
+    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, silverMat.shininess);
+    glTranslated(light0_pos[0], light0_pos[1], light0_pos[2]);
+    glutSolidSphere(5, 10, 5);
+    glPopMatrix();
+    glLightfv(GL_LIGHT0, GL_POSITION, light0_pos);
+}
+
+void testObj() {
+    glPushMatrix();
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, goldMat.ambient);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, goldMat.diffuse);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, goldMat.specular);
+    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, goldMat.shininess);
+    glTranslated(testobj[0], testobj[1], testobj[2]);
+    glutSolidSphere(5,10,5);
+    glPopMatrix();
 }
 
 void display(void) {
@@ -293,13 +382,15 @@ void display(void) {
     gluLookAt(camPos[0], camPos[1], camPos[2], 0,0,0,  0,1,0);
     
     
+    glColor3f(0, 1, 1);
+
     sceneRotate();
     
-    glColor3f(0, 1, 1);
-    glutSolidCube(10);
+    Skybox();
+    light();
     
-    
-    glColor3f(1,1,1);
+    // For testing lighting
+    testObj();
     
     glutSwapBuffers();
     glutPostRedisplay();
@@ -397,11 +488,13 @@ void keyboard(unsigned char key, int x, int y) {
         paused = !paused;
         if (paused) {
             printf("PAUSED\n");
+            glutPushWindow();
             pauseWindow();
         } else {
+            glutPopWindow();
+            glutShowWindow();
             glutDestroyWindow(window);
             printf("RESUME\n");
-            glutShowWindow();
         }
     }
     
@@ -481,9 +574,13 @@ void pauseMouse(int btn, int state, int x, int y) {
         if (x >= clX1 && x <= clX2 && y >= clY2 && y <= clY1) {
             exit(0);
         }
-        // If the mouse clicks the start button
+        // If the mouse clicks the resume button
         if (x >= stX1 && x <= stX2 && y >= stY2 && y <= stY1) {
+            glutPopWindow();
+            glutShowWindow();
+            glutDestroyWindow(window);
             paused = !paused;
+            printf("RESUME\n");
         }
     }
 }
@@ -501,7 +598,7 @@ void startKeyboard(unsigned char key, int x, int y) {
         exit(0);
     }
     
-    // Enables randomizing of particles
+    // Enables randomizing of particle colours
     if (key == 'l' || key == 'L') {
         lightShow = !lightShow;
     }
@@ -511,11 +608,17 @@ void pauseKeyboard(unsigned char key, int x, int y) {
     // Goes back into the game
     if (key == ENTER || key == SPACEBAR) {
         paused = !paused;
+        printf("RESUME");
     }
     
     // Exits the game
     if (key == ESCAPE || key == 'q' || key == 'Q') {
         exit(0);
+    }
+    
+    // Enables randomizing of particle colours
+    if (key == 'l' || key == 'L') {
+        lightShow = !lightShow;
     }
 }
 
@@ -563,7 +666,7 @@ void gameWindow() {
     
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(65, 1, 1, 500);
+    gluPerspective(65, 1, 1, 1000);
     glMatrixMode(GL_MODELVIEW);
     
     // Enable culling
@@ -571,6 +674,7 @@ void gameWindow() {
     glFrontFace(GL_CCW);
     glCullFace(GL_BACK);
     
+    glutSetCursor(GLUT_CURSOR_CROSSHAIR);
     glutKeyboardFunc(keyboard);
     glutIdleFunc(idle);
     glutSpecialFunc(special);
@@ -589,6 +693,7 @@ void startWindow() {
     
     gluOrtho2D(0, screenSizeX2, 0, screenSizeY2);
     
+    glutSetCursor(GLUT_CURSOR_CROSSHAIR);
     glutKeyboardFunc(startKeyboard);
     glutMouseFunc(startMouse);
     glutIdleFunc(idle);
@@ -602,11 +707,11 @@ void pauseWindow() {
     glutInitWindowSize(screenSizeX2, screenSizeY2);
     window = glutCreateWindow("Asteroids || PAUSE");
     glutDisplayFunc(pauseDisplay);
-    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     
+    glutSetCursor(GLUT_CURSOR_CROSSHAIR);
     gluOrtho2D(0, screenSizeX2, 0, screenSizeY2);
-    
-    glutKeyboardFunc(pauseKeyboard);
+    glutKeyboardFunc(keyboard);
     glutMouseFunc(pauseMouse);
     glutIdleFunc(idle);
 }
@@ -658,8 +763,6 @@ void updateParticles(int i) {
     if (particleVector.at(i).position.x > screenSizeX2) {
         particleVector.at(i).direction.x = particleVector.at(i).direction.x * -1;
     }
-    
-    //Particle::displayParticles(i, particleVector, lightShow);
 }
 
 
