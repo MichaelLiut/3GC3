@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		6425257818610BB70004515F /* _2DMathLib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6425257618610BB70004515F /* _2DMathLib.cpp */; };
+		6471293D1862E51C00D4107E /* Particle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6471293B1862E51C00D4107E /* Particle.cpp */; };
 		64A76A4B185E674A00BCC1D2 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 64A76A4A185E674A00BCC1D2 /* Foundation.framework */; };
 		64A76A59185E677B00BCC1D2 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 64A76A58185E677B00BCC1D2 /* OpenGL.framework */; };
 		64A76A5B185E678000BCC1D2 /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 64A76A5A185E678000BCC1D2 /* GLUT.framework */; };
@@ -29,6 +30,8 @@
 /* Begin PBXFileReference section */
 		6425257618610BB70004515F /* _2DMathLib.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = _2DMathLib.cpp; sourceTree = "<group>"; };
 		6425257718610BB70004515F /* _2DMathLib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = _2DMathLib.h; sourceTree = "<group>"; };
+		6471293B1862E51C00D4107E /* Particle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Particle.cpp; sourceTree = "<group>"; };
+		6471293C1862E51C00D4107E /* Particle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Particle.h; sourceTree = "<group>"; };
 		64A76A47185E674A00BCC1D2 /* EnvironmentMapping */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = EnvironmentMapping; sourceTree = BUILT_PRODUCTS_DIR; };
 		64A76A4A185E674A00BCC1D2 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		64A76A50185E674A00BCC1D2 /* EnvironmentMapping-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "EnvironmentMapping-Prefix.pch"; sourceTree = "<group>"; };
@@ -84,6 +87,8 @@
 				6425257618610BB70004515F /* _2DMathLib.cpp */,
 				6425257718610BB70004515F /* _2DMathLib.h */,
 				64A76A5C185E67B400BCC1D2 /* main.cpp */,
+				6471293B1862E51C00D4107E /* Particle.cpp */,
+				6471293C1862E51C00D4107E /* Particle.h */,
 				64A76A4F185E674A00BCC1D2 /* Supporting Files */,
 			);
 			path = EnvironmentMapping;
@@ -149,6 +154,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				64A76A5E185E67B400BCC1D2 /* main.cpp in Sources */,
+				6471293D1862E51C00D4107E /* Particle.cpp in Sources */,
 				6425257818610BB70004515F /* _2DMathLib.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

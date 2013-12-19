@@ -13,6 +13,7 @@
 #include <GLUT/glut.h>
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
+#include "Particle.h"
 
 #include <time.h>
 
@@ -33,6 +34,17 @@ int mainWindow = 0;
 
 static bool paused = false;
 static bool startGame = false;
+// EASTER EGG for enabling strobe lighting
+static bool lightShow = false;
+
+void createParticles(float inX, float inY);
+void generateParticles();
+void updateParticles(int i);
+
+// Initializes the array of particles
+int initNumParticles = 150;
+vector<Particle> particleVector; // Vector of all the particles drawn to reference
+
 
 // Initial position of the camera
 float camPos[] = {150, 150, 150};
@@ -56,6 +68,10 @@ int titleWidth;
 int titleHeight;
 int titleMax;
 
+GLubyte *resume;
+int resumeWidth;
+int resumeHeight;
+int resumeMax;
 GLubyte *start;
 int startWidth;
 int startHeight;
@@ -156,18 +172,18 @@ GLuint skybox[6];
 GLubyte* skyboxTextures[6];
 int skyboxWidth[6];
 int skyboxHeight[6];
-int max[6];
+int Max[6];
 
 void loadSkybox() {
     glEnable(GL_TEXTURE_2D);
     glGenTextures(6, skybox);
     
-    skyboxTextures[0] = LoadPPM("Galaxy_FT.ppm", &skyboxWidth[0], &skyboxHeight[0], &max[0]);
-    skyboxTextures[1] = LoadPPM("Galaxy_LT.ppm", &skyboxWidth[1], &skyboxHeight[1], &max[1]);
-    skyboxTextures[2] = LoadPPM("Galaxy_BK.ppm", &skyboxWidth[2], &skyboxHeight[2], &max[2]);
-    skyboxTextures[3] = LoadPPM("Galaxy_RT.ppm", &skyboxWidth[3], &skyboxHeight[3], &max[3]);
-    skyboxTextures[4] = LoadPPM("Galaxy_UP.ppm", &skyboxWidth[4], &skyboxHeight[4], &max[4]);
-    skyboxTextures[5] = LoadPPM("Galaxy_DN.ppm", &skyboxWidth[5], &skyboxHeight[5], &max[5]);
+    skyboxTextures[0] = LoadPPM("Galaxy_FT.ppm", &skyboxWidth[0], &skyboxHeight[0], &Max[0]);
+    skyboxTextures[1] = LoadPPM("Galaxy_LT.ppm", &skyboxWidth[1], &skyboxHeight[1], &Max[1]);
+    skyboxTextures[2] = LoadPPM("Galaxy_BK.ppm", &skyboxWidth[2], &skyboxHeight[2], &Max[2]);
+    skyboxTextures[3] = LoadPPM("Galaxy_RT.ppm", &skyboxWidth[3], &skyboxHeight[3], &Max[3]);
+    skyboxTextures[4] = LoadPPM("Galaxy_UP.ppm", &skyboxWidth[4], &skyboxHeight[4], &Max[4]);
+    skyboxTextures[5] = LoadPPM("Galaxy_DN.ppm", &skyboxWidth[5], &skyboxHeight[5], &Max[5]);
     
     for (int i = 0; i < 6; i++) {
 		glBindTexture(GL_TEXTURE_2D, skybox[i]);
@@ -295,6 +311,14 @@ void startDisplay(void) {
     glClearColor(0,0,0,0);
     glMatrixMode(GL_MODELVIEW);
     
+    for (int i = 0; i < particleVector.size(); i++) {
+        // Updates the particle
+        updateParticles(i);
+        
+        // Drawing the particles stored
+        Particle::displayParticles(i, particleVector, lightShow);
+    }
+    
     // Setting the title position
     glRasterPos2f(680, 270);
     glPixelZoom(-1, 1);
@@ -322,6 +346,14 @@ void pauseDisplay(void) {
     glClearColor(0,0,0,0);
     glMatrixMode(GL_MODELVIEW);
     
+    for (int i = 0; i < particleVector.size(); i++) {
+        // Updates the particle
+        updateParticles(i);
+        
+        // Drawing the particles stored
+        Particle::displayParticles(i, particleVector, lightShow);
+    }
+    
     // Setting the title position
     glRasterPos2f(680, 270);
     glPixelZoom(-1, 1);
@@ -332,7 +364,7 @@ void pauseDisplay(void) {
     glRasterPos2f(460, 180);
     glPixelZoom(-1, 1);
     
-    glDrawPixels(startWidth, startHeight, GL_RGB, GL_UNSIGNED_BYTE, start);
+    glDrawPixels(resumeWidth, resumeHeight, GL_RGB, GL_UNSIGNED_BYTE, resume);
     
     // Setting the exit button position
     glRasterPos2f(680, 180);
@@ -367,6 +399,7 @@ void keyboard(unsigned char key, int x, int y) {
             printf("PAUSED\n");
             pauseWindow();
         } else {
+            glutDestroyWindow(window);
             printf("RESUME\n");
             glutShowWindow();
         }
@@ -441,14 +474,46 @@ void startMouse(int btn, int state, int x, int y) {
     }
 }
 
+void pauseMouse(int btn, int state, int x, int y) {
+    y = screenSizeY2 - y;
+    if (state == GLUT_DOWN){
+        // If the mouse clicks the exit button
+        if (x >= clX1 && x <= clX2 && y >= clY2 && y <= clY1) {
+            exit(0);
+        }
+        // If the mouse clicks the start button
+        if (x >= stX1 && x <= stX2 && y >= stY2 && y <= stY1) {
+            paused = !paused;
+        }
+    }
+}
+
+
 // Limits the keyboard control to a few options on the start screen
 void startKeyboard(unsigned char key, int x, int y) {
-    // Starts game without
+    // Starts game
     if (key == ENTER || key == SPACEBAR) {
         gameWindow();
     }
     
     // Quits the program
+    if (key == ESCAPE || key == 'q' || key == 'Q') {
+        exit(0);
+    }
+    
+    // Enables randomizing of particles
+    if (key == 'l' || key == 'L') {
+        lightShow = !lightShow;
+    }
+}
+
+void pauseKeyboard(unsigned char key, int x, int y) {
+    // Goes back into the game
+    if (key == ENTER || key == SPACEBAR) {
+        paused = !paused;
+    }
+    
+    // Exits the game
     if (key == ESCAPE || key == 'q' || key == 'Q') {
         exit(0);
     }
@@ -520,7 +585,7 @@ void startWindow() {
     glutInitWindowSize(screenSizeX2, screenSizeY2);
     window = glutCreateWindow("Asteroids || Start");
     glutDisplayFunc(startDisplay);
-    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     
     gluOrtho2D(0, screenSizeX2, 0, screenSizeY2);
     
@@ -530,28 +595,80 @@ void startWindow() {
 }
 
 void pauseWindow() {
-    loadMenuItems();
-    
     glutHideWindow();
     
     // Setting the screen size to the centre
     glutInitWindowPosition(screenSizeY / 4, screenSizeX / 10);
     glutInitWindowSize(screenSizeX2, screenSizeY2);
     window = glutCreateWindow("Asteroids || PAUSE");
-    glutDisplayFunc(startDisplay);
+    glutDisplayFunc(pauseDisplay);
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
     
     gluOrtho2D(0, screenSizeX2, 0, screenSizeY2);
     
-    glutKeyboardFunc(startKeyboard);
-    glutMouseFunc(startMouse);
+    glutKeyboardFunc(pauseKeyboard);
+    glutMouseFunc(pauseMouse);
     glutIdleFunc(idle);
 }
+
+void generateParticles() {
+    for (int i = 0; i < initNumParticles; i++) {
+        float inX = rand() % ((int)screenSizeX / 2) + 1;
+        float inY = rand() % ((int)screenSizeY / 2) + 1;
+        createParticles(inX, inY);
+    }
+}
+
+void createParticles(float inX, float inY) {
+    Particle particle;
+    
+    particle.position = point2D(inX, inY);
+    
+    particle.colour = Particle::randColour(lightShow);
+    
+    particle.size = Particle::randPtSize();
+    
+    particle.speed = Particle::randSpeed();
+    
+    particle.direction = vec2D(Particle::generateFloat(-2, 2), Particle::generateFloat(-2, 2));
+    
+    particleVector.push_back(particle);
+}
+
+void updateParticles(int i) {
+    particleVector.at(i).direction = _2DMath::vectorMultiply(particleVector.at(i).direction, 1);
+    particleVector.at(i).position = _2DMath::movePoint(particleVector.at(i).position, particleVector.at(i).direction);
+    
+    float movX = particleVector.at(i).direction.x * particleVector.at(i).speed;
+    float movY = particleVector.at(i).direction.y * particleVector.at(i).speed;
+    
+    particleVector.at(i).position.x = particleVector.at(i).position.x + movX;
+    particleVector.at(i).position.y = particleVector.at(i).position.y + movY;
+    
+    // When hitting the window boundaries
+    if (particleVector.at(i).position.y < 0) {
+        particleVector.at(i).direction.y = particleVector.at(i).direction.y * -1;
+    }
+    if (particleVector.at(i).position.y > screenSizeY2) {
+        particleVector.at(i).direction.y = particleVector.at(i).direction.y * -1;
+    }
+    if (particleVector.at(i).position.x < 0) {
+        particleVector.at(i).direction.x = particleVector.at(i).direction.x * -1;
+    }
+    if (particleVector.at(i).position.x > screenSizeX2) {
+        particleVector.at(i).direction.x = particleVector.at(i).direction.x * -1;
+    }
+    
+    //Particle::displayParticles(i, particleVector, lightShow);
+}
+
+
 
 void loadMenuItems() {
     title = LoadPPM("Asteroids.ppm", &titleWidth, &titleHeight, &titleMax);
     start = LoadPPM("Start.ppm", &startWidth, &startHeight, &startMax);
     close = LoadPPM("Exit.ppm", &closeWidth, &closeHeight, &closeMax);
+    resume = LoadPPM("Resume.ppm", &resumeWidth, &resumeHeight, &resumeMax);
 }
 
 int main(int argc, char** argv) {
@@ -560,6 +677,7 @@ int main(int argc, char** argv) {
     srand(time(NULL));
     
     loadMenuItems();
+    generateParticles();
     startWindow();
     
     glutMainLoop();
