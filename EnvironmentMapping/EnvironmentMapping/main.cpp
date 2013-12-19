@@ -18,13 +18,18 @@
 
 #define ESCAPE 27
 #define SPACEBAR 32
+#define ENTER 13
 
 
 using namespace std;
 
 // Global variables for the screen size
 int screenSizeX = 1920;
+int screenSizeX2 = screenSizeX / 2;
 int screenSizeY = 1080;
+int screenSizeY2 = screenSizeY / 2;
+int window = 0;
+int mainWindow = 0;
 
 static bool paused = false;
 static bool startGame = false;
@@ -40,6 +45,36 @@ float zRot = 0;
 // Functions to be used in this class
 void reset();
 void sceneRotate(void);
+void startWindow();
+void gameWindow();
+void pauseWindow();
+void loadMenuItems();
+
+// Start screen images
+GLubyte *title;
+int titleWidth;
+int titleHeight;
+int titleMax;
+
+GLubyte *start;
+int startWidth;
+int startHeight;
+int startMax;
+// Start/Resume button coordinates
+int stX1 = 280;
+int stY1 = 233;
+int stX2 = 460;
+int stY2 = 180;
+
+GLubyte *close;
+int closeWidth;
+int closeHeight;
+int closeMax;
+// Exit button coordinates
+int clX1 = 500;
+int clY1 = 233;
+int clX2 = 680;
+int clY2 = 180;
 
 /* LoadPPM -- loads the specified ppm file, and returns the image data as a GLubyte
  *  (unsigned byte) array. Also returns the width and height of the image, and the
@@ -127,12 +162,12 @@ void loadSkybox() {
     glEnable(GL_TEXTURE_2D);
     glGenTextures(6, skybox);
     
-    skyboxTextures[0] = LoadPPM("Galaxy_FT.bmp", &skyboxWidth[0], &skyboxHeight[0], &max[0]);
-    skyboxTextures[1] = LoadPPM("Galaxy_LT.bmp", &skyboxWidth[1], &skyboxHeight[1], &max[1]);
-    skyboxTextures[2] = LoadPPM("Galaxy_BK.bmp", &skyboxWidth[2], &skyboxHeight[2], &max[2]);
-    skyboxTextures[3] = LoadPPM("Galaxy_RT.bmp", &skyboxWidth[3], &skyboxHeight[3], &max[3]);
-    skyboxTextures[4] = LoadPPM("Galaxy_UP.bmp", &skyboxWidth[4], &skyboxHeight[4], &max[4]);
-    skyboxTextures[5] = LoadPPM("Galaxy_DN.bmp", &skyboxWidth[5], &skyboxHeight[5], &max[5]);
+    skyboxTextures[0] = LoadPPM("Galaxy_FT.ppm", &skyboxWidth[0], &skyboxHeight[0], &max[0]);
+    skyboxTextures[1] = LoadPPM("Galaxy_LT.ppm", &skyboxWidth[1], &skyboxHeight[1], &max[1]);
+    skyboxTextures[2] = LoadPPM("Galaxy_BK.ppm", &skyboxWidth[2], &skyboxHeight[2], &max[2]);
+    skyboxTextures[3] = LoadPPM("Galaxy_RT.ppm", &skyboxWidth[3], &skyboxHeight[3], &max[3]);
+    skyboxTextures[4] = LoadPPM("Galaxy_UP.ppm", &skyboxWidth[4], &skyboxHeight[4], &max[4]);
+    skyboxTextures[5] = LoadPPM("Galaxy_DN.ppm", &skyboxWidth[5], &skyboxHeight[5], &max[5]);
     
     for (int i = 0; i < 6; i++) {
 		glBindTexture(GL_TEXTURE_2D, skybox[i]);
@@ -153,7 +188,7 @@ void Skybox() {
     glPushMatrix();
     
     glLoadIdentity();
-    //gluLookAt(0,0,0, camPos[0], camPos[1], camPos[2], 0,1,0);
+    gluLookAt(0,0,0, camPos[0], camPos[1], camPos[2], 0,1,0);
     
     glPushAttrib(GL_ENABLE_BIT);
     glEnable(GL_TEXTURE_2D);
@@ -205,8 +240,8 @@ void Skybox() {
     glBegin(GL_QUADS);
         glTexCoord2f(0,0); glVertex3f(-0.5f, 0.5f, -0.5f);
         glTexCoord2f(1,0); glVertex3f(-0.5f, 0.5f, 0.5f);
-        glTexCoord2f(1,0); glVertex3f(0.5f, 0.5f, 0.5f);
-        glTexCoord2f(1,1); glVertex3f(0.5f, 0.5f, -0.5f);
+        glTexCoord2f(1,1); glVertex3f(0.5f, 0.5f, 0.5f);
+        glTexCoord2f(0,1); glVertex3f(0.5f, 0.5f, -0.5f);
     glEnd();
     
     // Render the bottom quad
@@ -230,6 +265,7 @@ void init(void) {
     Skybox();
 
     glEnable(GL_DEPTH_TEST);
+    glMatrixMode(GL_PROJECTION);
     
     glutPostRedisplay();
 }
@@ -238,11 +274,13 @@ void display(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    //gluLookAt(camPos[0], camPos[1], camPos[2], 0,0,0,  0,1,0);
+    gluLookAt(camPos[0], camPos[1], camPos[2], 0,0,0,  0,1,0);
+    
+    
     sceneRotate();
     
     glColor3f(0, 1, 1);
-    //glutSolidCube(10);
+    glutSolidCube(10);
     
     
     glColor3f(1,1,1);
@@ -251,12 +289,59 @@ void display(void) {
     glutPostRedisplay();
 }
 
-void display2(void) {
+
+void startDisplay(void) {
     glClear(GL_COLOR_BUFFER_BIT);
+    glClearColor(0,0,0,0);
+    glMatrixMode(GL_MODELVIEW);
     
+    // Setting the title position
+    glRasterPos2f(680, 270);
+    glPixelZoom(-1, 1);
     
+    glDrawPixels(titleWidth, titleHeight, GL_RGB, GL_UNSIGNED_BYTE, title);
+    
+    // Setting the start button position
+    glRasterPos2f(460, 180);
+    glPixelZoom(-1, 1);
+    
+    glDrawPixels(startWidth, startHeight, GL_RGB, GL_UNSIGNED_BYTE, start);
+    
+    // Setting the exit button position
+    glRasterPos2f(680, 180);
+    glPixelZoom(-1, 1);
+    
+    glDrawPixels(closeWidth, closeHeight, GL_RGB, GL_UNSIGNED_BYTE, close);
     
     glutSwapBuffers();
+    glutPostRedisplay();
+}
+
+void pauseDisplay(void) {
+    glClear(GL_COLOR_BUFFER_BIT);
+    glClearColor(0,0,0,0);
+    glMatrixMode(GL_MODELVIEW);
+    
+    // Setting the title position
+    glRasterPos2f(680, 270);
+    glPixelZoom(-1, 1);
+    
+    glDrawPixels(titleWidth, titleHeight, GL_RGB, GL_UNSIGNED_BYTE, title);
+    
+    // Setting the start button position
+    glRasterPos2f(460, 180);
+    glPixelZoom(-1, 1);
+    
+    glDrawPixels(startWidth, startHeight, GL_RGB, GL_UNSIGNED_BYTE, start);
+    
+    // Setting the exit button position
+    glRasterPos2f(680, 180);
+    glPixelZoom(-1, 1);
+    
+    glDrawPixels(closeWidth, closeHeight, GL_RGB, GL_UNSIGNED_BYTE, close);
+    
+    glutSwapBuffers();
+    glutPostRedisplay();
 }
 
 // Used just for testing and seeing what the whole view looks like
@@ -280,8 +365,10 @@ void keyboard(unsigned char key, int x, int y) {
         paused = !paused;
         if (paused) {
             printf("PAUSED\n");
+            pauseWindow();
         } else {
             printf("RESUME\n");
+            glutShowWindow();
         }
     }
     
@@ -340,38 +427,140 @@ void idle() {
     glutPostRedisplay();
 }
 
+void startMouse(int btn, int state, int x, int y) {
+    y = screenSizeY2 - y;
+    if (state == GLUT_DOWN){
+        // If the mouse clicks the exit button
+        if (x >= clX1 && x <= clX2 && y >= clY2 && y <= clY1) {
+            exit(0);
+        }
+        // If the mouse clicks the start button
+        if (x >= stX1 && x <= stX2 && y >= stY2 && y <= stY1) {
+            gameWindow();
+        }
+    }
+}
+
+// Limits the keyboard control to a few options on the start screen
+void startKeyboard(unsigned char key, int x, int y) {
+    // Starts game without
+    if (key == ENTER || key == SPACEBAR) {
+        gameWindow();
+    }
+    
+    // Quits the program
+    if (key == ESCAPE || key == 'q' || key == 'Q') {
+        exit(0);
+    }
+}
+
+void special(int key, int x, int y)
+{
+	/* arrow key presses move the camera */
+	switch(key)
+	{
+		case GLUT_KEY_LEFT:
+			camPos[0]-=0.1;
+			break;
+            
+		case GLUT_KEY_RIGHT:
+			camPos[0]+=0.1;
+			break;
+            
+		case GLUT_KEY_UP:
+			camPos[2] -= 0.1;
+			break;
+            
+		case GLUT_KEY_DOWN:
+			camPos[2] += 0.1;
+			break;
+            
+		case GLUT_KEY_HOME:
+			camPos[1] += 0.1;
+			break;
+            
+		case GLUT_KEY_END:
+			camPos[1] -= 0.1;
+			break;
+            
+	}
+	glutPostRedisplay();
+}
+
+
+void gameWindow() {
+    glutInitWindowSize(screenSizeX, screenSizeY);
+    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
+    glutDestroyWindow(window);
+    mainWindow = glutCreateWindow("Environment Mapping Testing");
+    glutDisplayFunc(display);
+    glutSpecialFunc(special);
+    
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(65, 1, 1, 500);
+    glMatrixMode(GL_MODELVIEW);
+    
+    // Enable culling
+    glEnable(GL_CULL_FACE);
+    glFrontFace(GL_CCW);
+    glCullFace(GL_BACK);
+    
+    glutKeyboardFunc(keyboard);
+    glutIdleFunc(idle);
+    glutSpecialFunc(special);
+    init();
+    
+    glutMainLoop();
+}
+
+void startWindow() {
+    // Setting the screen size to the centre
+    glutInitWindowPosition(screenSizeY / 4, screenSizeX / 10);
+    glutInitWindowSize(screenSizeX2, screenSizeY2);
+    window = glutCreateWindow("Asteroids || Start");
+    glutDisplayFunc(startDisplay);
+    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+    
+    gluOrtho2D(0, screenSizeX2, 0, screenSizeY2);
+    
+    glutKeyboardFunc(startKeyboard);
+    glutMouseFunc(startMouse);
+    glutIdleFunc(idle);
+}
+
+void pauseWindow() {
+    loadMenuItems();
+    
+    glutHideWindow();
+    
+    // Setting the screen size to the centre
+    glutInitWindowPosition(screenSizeY / 4, screenSizeX / 10);
+    glutInitWindowSize(screenSizeX2, screenSizeY2);
+    window = glutCreateWindow("Asteroids || PAUSE");
+    glutDisplayFunc(startDisplay);
+    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+    
+    gluOrtho2D(0, screenSizeX2, 0, screenSizeY2);
+    
+    glutKeyboardFunc(startKeyboard);
+    glutMouseFunc(startMouse);
+    glutIdleFunc(idle);
+}
+
+void loadMenuItems() {
+    title = LoadPPM("Asteroids.ppm", &titleWidth, &titleHeight, &titleMax);
+    start = LoadPPM("Start.ppm", &startWidth, &startHeight, &startMax);
+    close = LoadPPM("Exit.ppm", &closeWidth, &closeHeight, &closeMax);
+}
+
 int main(int argc, char** argv) {
     glutInit(&argc, argv);  // starts up GLUT
     
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     srand(time(NULL));
     
-    
-    // GLUT functions
-   // if (startGame) {
-        glutInitWindowSize(screenSizeX, screenSizeY);
-        glutCreateWindow("Environment Mapping Testing");
-        glutDisplayFunc(display);
-        
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        gluPerspective(65, 1, 1, 500);
-        glMatrixMode(GL_MODELVIEW);
-        
-        // Enable culling
-        glEnable(GL_CULL_FACE);
-        glFrontFace(GL_CCW);
-        glCullFace(GL_BACK);
-   // } else {
-   //     glutInitWindowSize(screenSizeX / 2, screenSizeY / 2);
-     //   glutCreateWindow("Asteroids || Start");
-       // glutDisplayFunc(display2);
-        
-      //  glutInitDisplayMode(GLUT_DOUBLE);
-   // }
-    glutKeyboardFunc(keyboard);
-    glutIdleFunc(idle);
-    init();
+    loadMenuItems();
+    startWindow();
     
     glutMainLoop();
     
