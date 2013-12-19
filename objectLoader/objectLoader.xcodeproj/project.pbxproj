@@ -17,7 +17,7 @@
 		D2AB8E5B185FD455008EA373 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
+			dstPath = /usr/share/man/man1;
 			dstSubfolderSpec = 0;
 			files = (
 				D2AB8E63185FD455008EA373 /* objectLoader.1 in CopyFiles */,
@@ -233,6 +233,7 @@
 				D2AB8E68185FD455008EA373 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
