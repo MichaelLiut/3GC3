@@ -16,6 +16,13 @@
 #include "Particle.h"
 
 #include <time.h>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
+#include <cmath>
+#include <vector>
+#include <stdio.h>
 
 #define ESCAPE 27
 #define SPACEBAR 32
@@ -45,43 +52,50 @@ void updateParticles(int i);
 int initNumParticles = 150;
 vector<Particle> particleVector; // Vector of all the particles drawn to reference
 
+// Asteroid properties
+int numOfAsteroids = 5;
+int asteroid;
+float angle = 0.0f;
 
 // LIGHTING AND MATERIALS
 float light0_pos[] = {0, 2, -250, 1};
-float testobj[] = {50, 50, 50, 1};
 
 struct materialStruct {
     float ambient[4];
     float diffuse[4];
     float specular[4];
+    float emission[4];
     float shininess;
 } materialStruct;
 
-float emission[4] = {0.6, 0.6, 0.6, 0.0};
+float emission[4] = {0.6, 0.6, 0.6, 1.0};
 
 struct materialStruct silverMat = {
-    {0.33, 0.22, 0.03, 1.0},
-    {0.78, 0.57, 0.11, 1.0},
-    {0.99, 0.91, 0.81, 1.0},
+    {0.5, 0.5, 0.5, 1.0},
+    {0.6, 0.6, 0.6, 1.0},
+    {0.6, 0.6, 0.6, 1.0},
+    {0.3, 0.3, 0.3, 1.0},
     35.0
 };
 
 struct materialStruct asterMat = {
-    {0.33, 0.22, 0.03, 1.0},
-    {0.78, 0.57, 0.11, 1.0},
-    {0.99, 0.91, 0.81, 1.0},
-    35.0
+    {0.2, 0.2, 0.2, 0.5},
+    {0.2, 0.2, 0.2, 0.9},
+    {0.6, 0.6, 0.6, 0.8},
+    {0.01, 0.01, 0.01, 0.0},
+    0
 };
 
 struct materialStruct goldMat = {
     {0.33, 0.22, 0.03, 1.0},
     {0.78, 0.57, 0.11, 1.0},
     {0.99, 0.91, 0.81, 1.0},
+    {0.6, 0.6, 0.6, 1.0},
     27.8
 };
 
 // Initial position of the camera
-float camPos[] = {0, 100, 100};
+float camPos[] = {0, 100, 50};
 
 // Scene Rotation Properties
 float xRot = 0;
@@ -95,6 +109,8 @@ void startWindow();
 void gameWindow();
 void pauseWindow();
 void loadMenuItems();
+void randomAsteroids(void);
+int loadObject();
 
 // Start screen images
 GLubyte *title;
@@ -131,8 +147,7 @@ int clY2 = 180;
  *  maximum colour value by way of arguments
  *  usage: GLubyte myImg = LoadPPM("myImg.ppm", &width, &height, &max);
  */
-GLubyte* LoadPPM(const char *file, int* width, int* height, int* max)
-{
+GLubyte* LoadPPM(const char *file, int* width, int* height, int* max) {
 	GLubyte* img;
 	FILE *fd;
 	int n, m;
@@ -242,89 +257,96 @@ void Skybox() {
     glEnable(GL_LIGHTING);
     glDisable(GL_CULL_FACE);
     
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, silverMat.ambient);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, silverMat.diffuse);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, silverMat.specular);
+    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, silverMat.shininess);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, silverMat.emission);
+    
     // Just in case we set the vertices to white
     glColor4f(1,1,1,1);
     
     // Render top face
     glBindTexture(GL_TEXTURE_2D, skybox[4]);
     glBegin(GL_QUADS);
-    glTexCoord2f(0,0);
-    glVertex3f(0.5f, 0.5f, -0.5f);
-    glTexCoord2f(0,1);
-    glVertex3f(-0.5f, 0.5f, -0.5f);
-    glTexCoord2f(1,1);
-    glVertex3f(-0.5f, 0.5f, 0.5f);
-    glTexCoord2f(1,0);
-    glVertex3f(0.5f, 0.5f, 0.5f);
+        glTexCoord2f(0,0);
+        glVertex3f(0.5f, 0.5f, -0.5f);
+        glTexCoord2f(0,1);
+        glVertex3f(-0.5f, 0.5f, -0.5f);
+        glTexCoord2f(1,1);
+        glVertex3f(-0.5f, 0.5f, 0.5f);
+        glTexCoord2f(1,0);
+        glVertex3f(0.5f, 0.5f, 0.5f);
     glEnd();
     
     // Render front face
     glBindTexture(GL_TEXTURE_2D, skybox[0]);
     glBegin(GL_QUADS);
-    glTexCoord2f(1,0);
-    glVertex3f(0.5f, -0.5f, -0.5f);
-    glTexCoord2f(1,1);
-    glVertex3f(0.5f, 0.5f, -0.5f);
-    glTexCoord2f(0,1);
-    glVertex3f(-0.5f, 0.5f, -0.5f);
-    glTexCoord2f(0,0);
-    glVertex3f(-0.5f, -0.5f, -0.5f);
+        glTexCoord2f(1,0);
+        glVertex3f(0.5f, -0.5f, -0.5f);
+        glTexCoord2f(1,1);
+        glVertex3f(0.5f, 0.5f, -0.5f);
+        glTexCoord2f(0,1);
+        glVertex3f(-0.5f, 0.5f, -0.5f);
+        glTexCoord2f(0,0);
+        glVertex3f(-0.5f, -0.5f, -0.5f);
     glEnd();
     
     // Render bottom face
     glBindTexture(GL_TEXTURE_2D, skybox[5]);
     glBegin(GL_QUADS);
-    glTexCoord2f(0,0);
-    glVertex3f(0.5f, -0.5f, -0.5f);
-    glTexCoord2f(0,1);
-    glVertex3f(-0.5f, -0.5f, -0.5f);
-    glTexCoord2f(1,1);
-    glVertex3f(-0.5f, -0.5f, 0.5f);
-    glTexCoord2f(1,0);
-    glVertex3f(0.5f, -0.5f, 0.5f);
+        glTexCoord2f(0,0);
+        glVertex3f(0.5f, -0.5f, -0.5f);
+        glTexCoord2f(0,1);
+        glVertex3f(-0.5f, -0.5f, -0.5f);
+        glTexCoord2f(1,1);
+        glVertex3f(-0.5f, -0.5f, 0.5f);
+        glTexCoord2f(1,0);
+        glVertex3f(0.5f, -0.5f, 0.5f);
     glEnd();
     
     // Render back face
     glBindTexture(GL_TEXTURE_2D, skybox[2]);
     glBegin(GL_QUADS);
-    glTexCoord2f(0,0);
-    glVertex3f(0.5f, -0.5f, 0.5f);
-    glTexCoord2f(0,1);
-    glVertex3f(0.5f, 0.5f, 0.5f);
-    glTexCoord2f(1,1);
-    glVertex3f(-0.5f, 0.5f, 0.5f);
-    glTexCoord2f(1,0);
-    glVertex3f(-0.5f, -0.5f, 0.5f);
+        glTexCoord2f(0,0);
+        glVertex3f(0.5f, -0.5f, 0.5f);
+        glTexCoord2f(0,1);
+        glVertex3f(0.5f, 0.5f, 0.5f);
+        glTexCoord2f(1,1);
+        glVertex3f(-0.5f, 0.5f, 0.5f);
+        glTexCoord2f(1,0);
+        glVertex3f(-0.5f, -0.5f, 0.5f);
     glEnd();
     
     // Render left face
     glBindTexture(GL_TEXTURE_2D, skybox[1]);
     glBegin(GL_QUADS);
-    glTexCoord2f(1,0);
-    glVertex3f(-0.5f, 0.5f, -0.5f);
-    glTexCoord2f(0,0);
-    glVertex3f(-0.5f, 0.5f, 0.5f);
-    glTexCoord2f(0,1);
-    glVertex3f(-0.5f, -0.5f, 0.5f);
-    glTexCoord2f(1,1);
-    glVertex3f(-0.5f, -0.5f, -0.5f);
+        glTexCoord2f(1,0);
+        glVertex3f(-0.5f, 0.5f, -0.5f);
+        glTexCoord2f(0,0);
+        glVertex3f(-0.5f, 0.5f, 0.5f);
+        glTexCoord2f(0,1);
+        glVertex3f(-0.5f, -0.5f, 0.5f);
+        glTexCoord2f(1,1);
+        glVertex3f(-0.5f, -0.5f, -0.5f);
     glEnd();
     
     // Render right face
     glBindTexture(GL_TEXTURE_2D, skybox[2]);
     glBegin(GL_QUADS);
-    glTexCoord2f(0,1);
-    glVertex3f(0.5f, 0.5f, -0.5f);
-    glTexCoord2f(1,1);
-    glVertex3f(0.5f, 0.5f, 0.5f);
-    glTexCoord2f(1,0);
-    glVertex3f(0.5f, -0.5f, 0.5f);
-    glTexCoord2f(0,0);
-    glVertex3f(0.5f, -0.5f, -0.5f);
+        glTexCoord2f(0,1);
+        glVertex3f(0.5f, 0.5f, -0.5f);
+        glTexCoord2f(1,1);
+        glVertex3f(0.5f, 0.5f, 0.5f);
+        glTexCoord2f(1,0);
+        glVertex3f(0.5f, -0.5f, 0.5f);
+        glTexCoord2f(0,0);
+        glVertex3f(0.5f, -0.5f, -0.5f);
     glEnd();
     
     glPopMatrix();
     glDisable(GL_TEXTURE_2D);
+    glEnable(GL_CULL_FACE);
 }
 
 void init(void) {
@@ -336,8 +358,8 @@ void init(void) {
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     
-    float light0_amb[4] = { 0.0, 0.0, 0.0, 1.0};
-	float light0_diff[4] = {1.0, 1.0, 1.0, 1.0};
+    float light0_amb[4] = {1.0, 1.0, 1.0, 1.0};
+	float light0_diff[4] = {1.0, 0, 0, 1.0};
 	float light0_spec[4] = {1.0, 1.0, 1.0, 1.0};
     
 	glLightfv(GL_LIGHT0, GL_AMBIENT, light0_amb);
@@ -351,27 +373,15 @@ void init(void) {
 }
 
 // Draw and update the light source
+// This light is located where the star on the background is
 void light() {
     glPushMatrix();
     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, silverMat.ambient);
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, silverMat.diffuse);
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, silverMat.specular);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);
     glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, silverMat.shininess);
     glTranslated(light0_pos[0], light0_pos[1], light0_pos[2]);
     glutSolidSphere(5, 10, 5);
-    glPopMatrix();
-    glLightfv(GL_LIGHT0, GL_POSITION, light0_pos);
-}
-
-void testObj() {
-    glPushMatrix();
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, goldMat.ambient);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, goldMat.diffuse);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, goldMat.specular);
-    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, goldMat.shininess);
-    glTranslated(testobj[0], testobj[1], testobj[2]);
-    glutSolidSphere(5,10,5);
     glPopMatrix();
 }
 
@@ -379,18 +389,21 @@ void display(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(camPos[0], camPos[1], camPos[2], 0,0,0,  0,1,0);
+    gluLookAt(camPos[0], camPos[1], camPos[2], 0,60,0,  0,1,0);
     
     
     glColor3f(0, 1, 1);
     
     sceneRotate();
     
+    // Shows background
     Skybox();
+    // Shows light source
     light();
     
-    // For testing lighting
-    testObj();
+    // Shows asteroids
+    randomAsteroids();
+    angle++;
     
     glutSwapBuffers();
     glutPostRedisplay();
@@ -549,7 +562,169 @@ void keyboard(unsigned char key, int x, int y) {
     }
 }
 
+// **************************OBJECT LOADER**************************
+// For the asteroid
+/* Object Coordinates Structure- XYZ Position Floats */
+struct objectCoordinates
+{
+	float x,y,z;
+	objectCoordinates(float a, float b, float c) : x(a), y(b), z(c) {};
+};
+
+/* Object Faces Structure - Can Contain Both Quads & Trangles */
+struct objectFaces
+{
+	int facenum;
+	int faces[4];
+    bool isQuad;
+	
+    //Triangle Constructor
+	objectFaces(int facen,int f1,int f2,int f3) : facenum(facen)
+    {
+        isQuad = false;
+        faces[0]=f1;
+		faces[1]=f2;
+		faces[2]=f3;
+	}
+    
+    //Quad Constructor
+	objectFaces(int facen,int f1,int f2,int f3,int f4) : facenum(facen)
+    { //overloaded constructor for quad
+        isQuad = true;
+        faces[0]=f1;
+		faces[1]=f2;
+		faces[2]=f3;
+		faces[3]=f4;
+	}
+};
+
+/* Load Object Method - Loads Vectors, Normals, and Faces from .obj filename */
+//Tutorial Referenced: http://www.youtube.com/user/thecplusplusguy "simple .obj loader"
+int loadObject(const char* filename)
+{
+	std::vector<std::string*> input;    //reads & imports all lines of the .obj file as a string
+	std::vector<objectCoordinates*> vertex;     //object vectors
+	std::vector<objectFaces*> faces;            //object faces
+	std::vector<objectCoordinates*> normals;	//object normal vectors for all faces
+	std::ifstream in(filename);     //open the .obj file
+    
+	if(!in.is_open())	//if file cannot open then exit method
+	{
+		std::cout << "No File Found!" << std::endl;
+		return -1;
+	}
+    
+	char buf[256];
+	
+	while(!in.eof())    //reads everyline in file
+	{
+		in.getline(buf, 256);
+		input.push_back(new std::string(buf));
+	}
+    
+	//For all lines of input file, determine what element to catagorize it as
+	for(int i = 0; i < input.size(); i++)
+	{
+		if(input[i] -> c_str()[0] == '#'){   //if the line is a comment, first char contains '#'
+			continue;	//skip any comments, as they do not matter
+            
+        }else if(input[i] -> c_str()[0] == 'v' && input[i] -> c_str()[1] == ' '){    //if the line is a vector, first two chars 'v '
+			float tempX, tempY, tempZ;
+			sscanf(input[i] -> c_str(), "v %f %f %f", &tempX, &tempY, &tempZ);  //read the 3f vectors to temp holders for XYZ
+			vertex.push_back(new objectCoordinates(tempX, tempY, tempZ));	//add temp vectors to array list
+            
+        }else if(input[i] -> c_str()[0] == 'v' && input[i] -> c_str()[1] == 'n'){   //if the line is a normal, first two chars 'vn'
+			float tempX, tempY, tempZ;
+			sscanf(input[i] -> c_str(), "vn %f %f %f", &tempX, &tempY, &tempZ); //read the 3f vectors to temp holders for XYZ
+			normals.push_back(new objectCoordinates(tempX, tempY, tempZ));  //add temp normal vectors to array list
+            
+        }else if(input[i] -> c_str()[0] == 'f'){    //if the line is a face, first char 'f'
+			int a, b, c, d, e;
+			if(count(input[i] -> begin(), input[i] -> end(),' ') == 3){     //if the line is a triangle, line has 3 spaces
+                sscanf(input[i] -> c_str(), "f %d//%d %d//%d %d//%d", &a, &b, &c, &b, &d, &b); //read the faces into to temp holders
+				faces.push_back(new objectFaces(b, a, c, d));	//add temp faces to array list
+                
+			}else{
+                //read the faces into to temp holders
+				sscanf(input[i]->c_str(),"f %d//%d %d//%d %d//%d %d//%d", &a, &b, &c, &b, &d, &b, &e, &b);
+                //add temp faces to array list - different pattern of faces
+				faces.push_back(new objectFaces(b, a, c, d, e));
+			}
+		}
+	}
+    
+    //Generates Uniques List
+	int num = glGenLists(1);
+	glNewList(num, GL_COMPILE);
+	
+    for(int i = 0; i < faces.size(); i++)
+	{
+		if(faces[i] -> isQuad)	//if it is a quad draw one
+		{
+            //Use the number of faces (facenum) as an index for the norma
+			glBegin(GL_QUADS);
+            glNormal3f(normals[faces[i]->facenum-1]->x,normals[faces[i]->facenum-1]->y,normals[faces[i]->facenum-1]->z);
+            
+            //Draws all of the faces
+            glVertex3f(vertex[faces[i]->faces[0]-1]->x,vertex[faces[i]->faces[0]-1]->y,vertex[faces[i]->faces[0]-1]->z);
+            glVertex3f(vertex[faces[i]->faces[1]-1]->x,vertex[faces[i]->faces[1]-1]->y,vertex[faces[i]->faces[1]-1]->z);
+            glVertex3f(vertex[faces[i]->faces[2]-1]->x,vertex[faces[i]->faces[2]-1]->y,vertex[faces[i]->faces[2]-1]->z);
+            glVertex3f(vertex[faces[i]->faces[3]-1]->x,vertex[faces[i]->faces[3]-1]->y,vertex[faces[i]->faces[3]-1]->z);
+			glEnd();
+		}else{      //if it is a triangle draw one
+			glBegin(GL_TRIANGLES);
+            glNormal3f(normals[faces[i]->facenum-1]->x,normals[faces[i]->facenum-1]->y,normals[faces[i]->facenum-1]->z);
+            glVertex3f(vertex[faces[i]->faces[0]-1]->x,vertex[faces[i]->faces[0]-1]->y,vertex[faces[i]->faces[0]-1]->z);
+            glVertex3f(vertex[faces[i]->faces[1]-1]->x,vertex[faces[i]->faces[1]-1]->y,vertex[faces[i]->faces[1]-1]->z);
+            glVertex3f(vertex[faces[i]->faces[2]-1]->x,vertex[faces[i]->faces[2]-1]->y,vertex[faces[i]->faces[2]-1]->z);
+			glEnd();
+		}
+	}
+	glEndList();
+    
+	//Delete All Lists - To Avoid Memory Leaks
+	for(int i = 0; i < input.size(); i++)
+		delete input[i];
+	for(int i = 0; i < faces.size(); i++)
+		delete faces[i];
+	for(int i = 0; i < normals.size(); i++)
+		delete normals[i];
+	for(int i = 0; i < vertex.size(); i++)
+		delete vertex[i];
+    
+    //Return Number ID
+	return num;
+}
+
+/* Display Function */
+void randomAsteroids(void) { //set the positions of the asteroids
+    //for (int i = 0; i < numOfAsteroids; i++)
+    //{
+        //positionX[i] = rand()%5 + 5;
+        //positionY[i] = rand()%5 + 5;
+        //positionZ[i] = rand()%5 + 5;
+        //cout<<"x:"<<positionX[i]<<" y:"<<positionY[i]<<" z:"<<positionZ[i]<<endl;
+        
+        glPushMatrix();
+        glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, asterMat.ambient);
+        glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, asterMat.diffuse);
+        glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, asterMat.specular);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, asterMat.emission);
+        glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, asterMat.shininess);
+    glScalef(5,5,5);
+        glRotatef(angle, 1, 1, 1);
+        glTranslated(15, 15, 15);
+        glCallList(asteroid);	//Draw 3D Asteroid Mesh
+        glPopMatrix();
+    //}
+}
+
 void idle() {
+    asteroid = loadObject("asteroid.obj");
+    glutPostRedisplay();
+}
+
+void otherIdle() {
     glutPostRedisplay();
 }
 
@@ -585,7 +760,6 @@ void pauseMouse(int btn, int state, int x, int y) {
     }
 }
 
-
 // Limits the keyboard control to a few options on the start screen
 void startKeyboard(unsigned char key, int x, int y) {
     // Starts game
@@ -604,26 +778,7 @@ void startKeyboard(unsigned char key, int x, int y) {
     }
 }
 
-void pauseKeyboard(unsigned char key, int x, int y) {
-    // Goes back into the game
-    if (key == ENTER || key == SPACEBAR) {
-        paused = !paused;
-        printf("RESUME");
-    }
-    
-    // Exits the game
-    if (key == ESCAPE || key == 'q' || key == 'Q') {
-        exit(0);
-    }
-    
-    // Enables randomizing of particle colours
-    if (key == 'l' || key == 'L') {
-        lightShow = !lightShow;
-    }
-}
-
-void special(int key, int x, int y)
-{
+void special(int key, int x, int y) {
 	/* arrow key presses move the camera */
 	switch(key)
 	{
@@ -696,7 +851,7 @@ void startWindow() {
     glutSetCursor(GLUT_CURSOR_CROSSHAIR);
     glutKeyboardFunc(startKeyboard);
     glutMouseFunc(startMouse);
-    glutIdleFunc(idle);
+    glutIdleFunc(otherIdle);
 }
 
 void pauseWindow() {
@@ -713,7 +868,7 @@ void pauseWindow() {
     gluOrtho2D(0, screenSizeX2, 0, screenSizeY2);
     glutKeyboardFunc(keyboard);
     glutMouseFunc(pauseMouse);
-    glutIdleFunc(idle);
+    glutIdleFunc(otherIdle);
 }
 
 void generateParticles() {

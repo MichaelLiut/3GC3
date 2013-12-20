@@ -337,7 +337,7 @@ void randomAsteroids (void) { //set the positions of the asteroids
         glColor3f(0.35, 0.35, 0.35);
         glScalef(5,5,5);
         glRotatef(angle, 1, 1, 1);
-        glTranslatef(0,0,0);
+        //glTranslatef(0,0,0);
         glCallList(asteroid);	//Draw 3D Asteroid Mesh
         glPopMatrix();
     }
