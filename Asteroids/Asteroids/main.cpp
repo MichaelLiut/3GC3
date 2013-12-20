@@ -14,6 +14,8 @@
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #include "Particle.h"
+#include "Asteroid.h"
+//#include "Bullet.h"
 
 #include <time.h>
 #include <iostream>
@@ -51,9 +53,10 @@ void updateParticles(int i);
 // Initializes the array of particles
 int initNumParticles = 150;
 vector<Particle> particleVector; // Vector of all the particles drawn to reference
+vector<Asteroid> asteroidVector;
 
 // Asteroid properties
-int numOfAsteroids = 5;
+int numOfAsteroids = 10;
 int asteroid;
 float angle = 0.0f;
 
@@ -94,13 +97,26 @@ struct materialStruct goldMat = {
     27.8
 };
 
+// Red plastic material for bullet/laser
+struct materialStruct redPlastic = {
+    {0.3, 0.0, 0.0, 1.0},
+    {0.6, 0.0, 0.0, 1.0},
+    {0.8, 0.6, 0.6, 1.0},
+    {1.0, 1.0, 1.0, 1.0},
+    32.0
+};
+
 // Initial position of the camera
 float camPos[] = {0, 100, 50};
+float lastX, lastY;
 
 // Scene Rotation Properties
-float xRot = 0;
-float yRot = 0;
-float zRot = 0;
+float xPos = camPos[0];
+float yPos = camPos[1];
+float zPos = camPos[2];
+float xRot = 40.0f;
+float yRot = -40.0f;
+float ang = 0.0f;
 
 // Functions to be used in this class
 void reset();
@@ -111,6 +127,9 @@ void pauseWindow();
 void loadMenuItems();
 void randomAsteroids(void);
 int loadObject();
+void createAsteroids();
+void displayAsteroids(int k);
+
 
 // Start screen images
 GLubyte *title;
@@ -257,11 +276,11 @@ void Skybox() {
     glEnable(GL_LIGHTING);
     glDisable(GL_CULL_FACE);
     
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, silverMat.ambient);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, silverMat.diffuse);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, silverMat.specular);
-    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, silverMat.shininess);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, silverMat.emission);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, goldMat.ambient);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, goldMat.diffuse);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, goldMat.specular);
+    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, goldMat.shininess);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, goldMat.emission);
     
     // Just in case we set the vertices to white
     glColor4f(1,1,1,1);
@@ -349,6 +368,103 @@ void Skybox() {
     glEnable(GL_CULL_FACE);
 }
 
+/* Global Variables */
+static GLfloat translate = 0.0f;
+using namespace std;
+
+//positions of the cubes
+float positionX[10];
+float positionY[10];
+float positionZ[10];
+
+class Bullet{
+public:
+    float x, y, z;
+    float dx, dy, dz;
+	float speed;
+	float rx, ry, rz;
+	float size, cr, cg, cb, age;
+	int direction;
+	double maximumHeight;
+    
+public:
+	Bullet(){           //constructor
+        speed=0.01;
+        size=0.2;
+        age=5000;
+        direction=1;
+        
+        maximumHeight=100;
+        cr=((double)rand()/(RAND_MAX));
+        cg=((double)rand()/(RAND_MAX));
+        cb=((double)rand()/(RAND_MAX));
+        
+        x=xPos;//0;//(rand()%5);
+        y=yPos;//0;//(rand()%5)+2;
+        z=zPos;//0;//(rand()%5);
+        cout<<"initial fire position, x:"<<x<<" y:"<<y<<" z:"<<z<<endl;
+        cout<<"xrot:"<<xRot<<" yrot:"<<yRot<<endl;
+        
+        
+        float xrotrad, yrotrad;
+      	yrotrad = (yRot / 180 * 3.141592654f); //xrot=40, yrot=-40
+       	xrotrad = (xRot / 180 * 3.141592654f);
+        float xPos2,yPos2,zPos2;
+        xPos2=xPos;
+        yPos2=yPos;
+        zPos2=zPos;
+        
+        xPos2 += float(sin(yrotrad)) ;
+        zPos2 -= float(cos(yrotrad)) ;
+        yPos2 -= float(sin(xrotrad)) ;
+        
+        dx=(xPos2-x)*100;//positionX[0]*10-x;
+        dy=(yPos2-y)*100;//positionY[0]*10-y;
+        dz=(zPos2-z)*100;//positionZ[0]*10-z;
+        cout<<"dx:"<<dx<<" dy:"<<dy<<" dz:"<<dz<<endl;
+        
+        
+	}
+    
+    void update()
+    {
+        glPushMatrix();
+        glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, silverMat.ambient);
+        glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, silverMat.diffuse);
+        glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, silverMat.specular);
+        glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, silverMat.shininess);
+        //glTranslatef(-cnt, cnt, -cnt);
+        glTranslatef(x, y, z);
+        //cout<<"current position, x:"<<x<<" y:"<<y<<" z:"<<z<<endl;
+    	glutSolidSphere(size, 20, 20);
+        glPopMatrix();
+		
+        /*float xrotrad, yrotrad;
+         yrotrad = (yrot / 180 * 3.141592654f); //xrot=40, yrot=-40
+         xrotrad = (xrot / 180 * 3.141592654f);
+         xpos += float(sin(yrotrad)) ;
+         zpos -= float(cos(yrotrad)) ;
+         ypos -= float(sin(xrotrad)) ;*/
+        
+        //xpos += float(sin(yrotrad)) ;
+        //zpos -= float(cos(yrotrad)) ;
+        //ypos -= float(sin(xrotrad)) ;
+        
+        
+        x=x+dx*speed;//x+(xpos*10)*speed;//x+(positionX[0] * 10)*speed;
+        y=y+dy*speed;//y+(ypos*10)*speed;//y+(positionY[0] * 10)*speed;
+        z=z+dz*speed;//zpos*10)*speed;//z+(positionZ[0] * 10)*speed;
+        //cout<<"bx:"<<bx<<" bz:"<<bz<<endl;
+        
+        if(abs(x-(positionX[0]*10))<1 && abs(z-(positionZ[0]*10))<1){
+            cout<<"hit"<<" x:"<<x<<" z:"<<z<<endl;
+        }
+    }
+};
+
+//Global Variable - Bullet List for Bullet Structure
+vector<Bullet> bulletList;
+
 void init(void) {
     glClearColor(0,0,0,0);
     
@@ -391,9 +507,6 @@ void display(void) {
     glLoadIdentity();
     gluLookAt(camPos[0], camPos[1], camPos[2], 0,60,0,  0,1,0);
     
-    
-    glColor3f(0, 1, 1);
-    
     sceneRotate();
     
     // Shows background
@@ -402,8 +515,13 @@ void display(void) {
     light();
     
     // Shows asteroids
-    randomAsteroids();
+    displayAsteroids(numOfAsteroids);
     angle++;
+    
+    for (int i = 0; i < bulletList.size(); i++) {
+        bulletList[i].update();
+    }
+    
     
     glutSwapBuffers();
     glutPostRedisplay();
@@ -485,7 +603,7 @@ void pauseDisplay(void) {
 void sceneRotate(void) {
     glRotatef(xRot, 1.0, 0.0, 0.0);
     glRotatef(yRot, 0.0, 1.0, 0.0);
-    glRotatef(zRot, 0.0, 0.0, 1.0);
+    glTranslated(-xPos, -yPos, -zPos);
 }
 
 // Keyboard function
@@ -497,7 +615,7 @@ void keyboard(unsigned char key, int x, int y) {
     
     
     // Toggles whether the program is paused or not
-    if (key == SPACEBAR) {
+    if (key == SPACEBAR || key == 'p' || key == 'P') {
         paused = !paused;
         if (paused) {
             printf("PAUSED\n");
@@ -517,47 +635,46 @@ void keyboard(unsigned char key, int x, int y) {
         // Each specified key on the keyboard changes the rotation
         // of the camer over a specific axis
         
-        // Rotate about the x-axis
-        if (key == 'w' || key == 'W') {
-            xRot += 1.2;
-            if (xRot > 360) {
-                xRot -= 360;
-            }
+        if (key == 'w')   //forward
+        {
+            float xrotrad, yrotrad;
+            yrotrad = (yRot / 180 * 3.141592654f); //xrot=40, yrot=-40
+            //cout<<"yrotrad:"<<yrotrad<<endl;
+            xrotrad = (xRot / 180 * 3.141592654f);
+            xPos += float(sin(yrotrad)) ;
+            zPos -= float(cos(yrotrad)) ;
+            yPos -= float(sin(xrotrad)) ;
+            //collisonCheck();
         }
-        // Rotate about the x-axis
-        if (key == 's' || key == 'S') {
-            xRot -= 1.2;
-            if (xRot < -360) {
-                xRot += 360;
-            }
+        
+        if (key == 's')     //backward
+        {
+            float xrotrad, yrotrad;
+            yrotrad = (yRot / 180 * 3.141592654f); //xrot=40, yrot=-40
+            xrotrad = (xRot / 180 * 3.141592654f);
+            xPos -= float(sin(yrotrad));
+            zPos += float(cos(yrotrad)) ;
+            yPos += float(sin(xrotrad));
+            //  cout<<"xpos:"<<xPos<<" ypos:"<<yPos<<" zpos:"<<zPos<<endl;
+            //collisonCheck();
         }
-        // Rotate about the y-axis
-        if (key == 'd' || key == 'D') {
-            yRot += 1.2;
-            if (yRot > 360) {
-                yRot -= 360;
-            }
+        
+        if (key == 'd')     //right
+        {
+            float yrotrad;
+            yrotrad = (yRot / 180 * 3.141592654f);
+            xPos += float(cos(yrotrad)) * 0.2;
+            zPos += float(sin(yrotrad)) * 0.2;
+            //collisonCheck();
         }
-        // Rotate about the y-axis
-        if (key == 'a' || key == 'A') {
-            yRot -= 1.2;
-            if (yRot < -360) {
-                yRot += 360;
-            }
-        }
-        // Rotate about the z-axis
-        if (key == 'c' || key == 'C') {
-            zRot += 1.2;
-            if (zRot > 360) {
-                zRot -= 360;
-            }
-        }
-        // Rotate about the z-axis
-        if (key == 'z' || key == 'Z') {
-            zRot -= 1.2;
-            if (zRot < -360) {
-                zRot += 360;
-            }
+        
+        if (key == 'a')     //left
+        {
+            float yrotrad;
+            yrotrad = (yRot / 180 * 3.141592654f);
+            xPos -= float(cos(yrotrad)) * 0.2;
+            zPos -= float(sin(yrotrad)) * 0.2;
+            //collisonCheck();
         }
     }
 }
@@ -696,28 +813,9 @@ int loadObject(const char* filename)
 	return num;
 }
 
-/* Display Function */
-void randomAsteroids(void) { //set the positions of the asteroids
-    //for (int i = 0; i < numOfAsteroids; i++)
-    //{
-        //positionX[i] = rand()%5 + 5;
-        //positionY[i] = rand()%5 + 5;
-        //positionZ[i] = rand()%5 + 5;
-        //cout<<"x:"<<positionX[i]<<" y:"<<positionY[i]<<" z:"<<positionZ[i]<<endl;
-        
-        glPushMatrix();
-        glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, asterMat.ambient);
-        glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, asterMat.diffuse);
-        glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, asterMat.specular);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, asterMat.emission);
-        glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, asterMat.shininess);
-    glScalef(5,5,5);
-        glRotatef(angle, 1, 1, 1);
-        glTranslated(15, 15, 15);
-        glCallList(asteroid);	//Draw 3D Asteroid Mesh
-        glPopMatrix();
-    //}
-}
+// **********************************************************************************
+// ******************************OBJECT LOADER FINISHED******************************
+// **********************************************************************************
 
 void idle() {
     asteroid = loadObject("asteroid.obj");
@@ -726,6 +824,21 @@ void idle() {
 
 void otherIdle() {
     glutPostRedisplay();
+}
+
+void gameMouseMotion(int x, int y) {
+    int diffX = x - lastX;
+    int diffY = y - lastY;
+    lastX = x;
+    lastY = y;
+    xRot += (float)diffY;
+    yRot += (float)diffX;
+}
+
+void gameMouse(int btn, int state, int x, int y) {
+    if (btn == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+        bulletList.push_back(*new Bullet);
+    }
 }
 
 void startMouse(int btn, int state, int x, int y) {
@@ -821,7 +934,7 @@ void gameWindow() {
     
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(65, 1, 1, 1000);
+    gluPerspective(60, 1, 1, 1000);
     glMatrixMode(GL_MODELVIEW);
     
     // Enable culling
@@ -831,6 +944,8 @@ void gameWindow() {
     
     glutSetCursor(GLUT_CURSOR_CROSSHAIR);
     glutKeyboardFunc(keyboard);
+    glutMouseFunc(gameMouse);
+    glutPassiveMotionFunc(gameMouseMotion);
     glutIdleFunc(idle);
     glutSpecialFunc(special);
     init();
@@ -895,6 +1010,101 @@ void createParticles(float inX, float inY) {
     particleVector.push_back(particle);
 }
 
+void generateAsteroids() {
+    for (int i = 0; i < numOfAsteroids; i++) {
+        createAsteroids();
+    }
+}
+
+void createAsteroids(){
+    Asteroid asteroid;
+    
+    asteroid.x = Particle::generateFloat(-250, 250);
+    asteroid.y = Particle::generateFloat(-250, 250);
+    asteroid.z = Particle::generateFloat(-250, 250);
+    
+    asteroid.position = point3D(asteroid.x, asteroid.y, asteroid.z);
+    
+    asteroid.rx = Particle::generateFloat(-1.0, 1.0);
+    asteroid.ry = Particle::generateFloat(-1.0, 1.0);
+    asteroid.rz = Particle::generateFloat(-1.0, 1.0);
+    
+    asteroid.size = Particle::randomNumGen(5, 10);
+    
+    asteroid.angle = Particle::generateFloat(0, 360);
+    
+    asteroidVector.push_back(asteroid);
+}
+
+void displayAsteroids(int k) {
+    for (int i = 0; i < k; i++) {
+        glPushMatrix();
+        glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, asterMat.ambient);
+        glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, asterMat.diffuse);
+        glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, asterMat.specular);
+        glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, asterMat.emission);
+        glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, asterMat.shininess);
+        glTranslated(asteroidVector.at(i).position.x, asteroidVector.at(i).position.y, asteroidVector.at(i).position.z);
+        glRotatef(asteroidVector.at(i).angle, asteroidVector.at(i).rx,asteroidVector.at(i).ry,asteroidVector.at(i).rz);
+        glScalef(asteroidVector.at(i).size, asteroidVector.at(i).size, asteroidVector.at(i).size);
+        glCallList(asteroid);
+        glPopMatrix();
+        asteroidVector.at(i).angle++;
+    }
+}
+
+/*void createBullet() {
+    Bullet bul;
+    
+    bul.position = point3D(xPos, yPos, zPos);
+    
+    bul.size = 0.2;
+    
+    bul.speed = 0.01;
+    
+    float xrotrad, yrotrad;
+    yrotrad = (yRot / 180 * M_PI);
+    xrotrad = (xRot / 180 * M_PI);
+    float xPos2, yPos2, zPos2;
+    xPos2 = xPos;
+    yPos2 = yPos;
+    zPos2 = zPos;
+    
+    xPos2 += float(sin(yrotrad));
+    zPos2 -= float(cos(yrotrad));
+    yPos2 -= float(sin(xrotrad));
+    
+    bul.dirX = (xPos2 - xPos) * 100;
+    bul.dirY = (yPos2 - yPos) * 100;
+    bul.dirZ = (zPos2 - zPos) * 100;
+    bul.direction = vec3D(bul.dirX, bul.dirY, bul.dirZ);
+    
+    bul.age = 500;
+}
+
+void updateBullet(int i) {
+    bullet.at(i).direction = _3DMath::vectorMultiply(bullet.at(i).direction, bullet.at(i).speed);
+    bullet.at(i).position = _3DMath::movePoint(bullet.at(i).position, bullet.at(i).direction);
+    
+    float movX = bullet.at(i).direction.x * bullet.at(i).speed;
+    float movY = bullet.at(i).direction.y * bullet.at(i).speed;
+    float movZ = bullet.at(i).direction.z * bullet.at(i).speed;
+    
+    bullet.at(i).position.x += movX;
+    bullet.at(i).position.y += movY;
+    bullet.at(i).position.z += movZ;
+    
+    glPushMatrix();
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, redPlastic.ambient);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, redPlastic.diffuse);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, redPlastic.specular);
+    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, redPlastic.shininess);
+    glTranslatef(bullet.at(i).position.x, bullet.at(i).position.y, bullet.at(i).position.z);
+    glutSolidSphere(bullet.at(i).size, 20, 20);
+    glPopMatrix();
+}*/
+
+
 void updateParticles(int i) {
     particleVector.at(i).direction = _2DMath::vectorMultiply(particleVector.at(i).direction, 1);
     particleVector.at(i).position = _2DMath::movePoint(particleVector.at(i).position, particleVector.at(i).direction);
@@ -920,7 +1130,10 @@ void updateParticles(int i) {
     }
 }
 
-
+void timer(int msec) {
+    glutPostRedisplay();
+    glutTimerFunc(60, timer, 0);
+}
 
 void loadMenuItems() {
     title = LoadPPM("Asteroids.ppm", &titleWidth, &titleHeight, &titleMax);
@@ -934,8 +1147,11 @@ int main(int argc, char** argv) {
     
     srand(time(NULL));
     
+    glutTimerFunc(50, timer, 0);
+    
     loadMenuItems();
     generateParticles();
+    generateAsteroids();
     startWindow();
     
     glutMainLoop();

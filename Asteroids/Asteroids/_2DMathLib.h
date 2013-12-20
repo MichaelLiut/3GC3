@@ -5,6 +5,8 @@
  Assignment 1 - 2DMathLib.cpp
  */
 
+#include <math.h>
+
 class point2D
 {
 public:

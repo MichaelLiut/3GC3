@@ -13,6 +13,9 @@
 		647129611863BD9600D4107E /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6471295F1863BD9600D4107E /* main.cpp */; };
 		647129671863BE1900D4107E /* _2DMathLib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 647129651863BE1900D4107E /* _2DMathLib.cpp */; };
 		6471296A1863BE2400D4107E /* Particle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 647129681863BE2400D4107E /* Particle.cpp */; };
+		647A1E951863EF350009411E /* Bullet.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 647A1E931863EF350009411E /* Bullet.cpp */; };
+		647A1E9B1863F0220009411E /* _3DMathLib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 647A1E991863F0220009411E /* _3DMathLib.cpp */; };
+		647A1E9E186451A30009411E /* Asteroid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 647A1E9C186451A30009411E /* Asteroid.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -38,6 +41,12 @@
 		647129661863BE1900D4107E /* _2DMathLib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = _2DMathLib.h; sourceTree = "<group>"; };
 		647129681863BE2400D4107E /* Particle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Particle.cpp; sourceTree = "<group>"; };
 		647129691863BE2400D4107E /* Particle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Particle.h; sourceTree = "<group>"; };
+		647A1E931863EF350009411E /* Bullet.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Bullet.cpp; sourceTree = "<group>"; };
+		647A1E941863EF350009411E /* Bullet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Bullet.h; sourceTree = "<group>"; };
+		647A1E991863F0220009411E /* _3DMathLib.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = _3DMathLib.cpp; sourceTree = "<group>"; };
+		647A1E9A1863F0220009411E /* _3DMathLib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = _3DMathLib.h; sourceTree = "<group>"; };
+		647A1E9C186451A30009411E /* Asteroid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Asteroid.cpp; sourceTree = "<group>"; };
+		647A1E9D186451A30009411E /* Asteroid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Asteroid.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,9 +95,15 @@
 			children = (
 				647129651863BE1900D4107E /* _2DMathLib.cpp */,
 				647129661863BE1900D4107E /* _2DMathLib.h */,
+				647A1E991863F0220009411E /* _3DMathLib.cpp */,
+				647A1E9A1863F0220009411E /* _3DMathLib.h */,
 				6471295F1863BD9600D4107E /* main.cpp */,
+				647A1E9C186451A30009411E /* Asteroid.cpp */,
+				647A1E9D186451A30009411E /* Asteroid.h */,
 				647129681863BE2400D4107E /* Particle.cpp */,
 				647129691863BE2400D4107E /* Particle.h */,
+				647A1E931863EF350009411E /* Bullet.cpp */,
+				647A1E941863EF350009411E /* Bullet.h */,
 				647129521863B6B900D4107E /* Supporting Files */,
 			);
 			path = Asteroids;
@@ -156,6 +171,9 @@
 				647129611863BD9600D4107E /* main.cpp in Sources */,
 				6471296A1863BE2400D4107E /* Particle.cpp in Sources */,
 				647129671863BE1900D4107E /* _2DMathLib.cpp in Sources */,
+				647A1E9B1863F0220009411E /* _3DMathLib.cpp in Sources */,
+				647A1E9E186451A30009411E /* Asteroid.cpp in Sources */,
+				647A1E951863EF350009411E /* Bullet.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -267,6 +285,7 @@
 				6471295A1863B6B900D4107E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
