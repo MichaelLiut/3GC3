@@ -4,11 +4,14 @@
  * Daniel Esteves - 1152328
  * December 12, 2013
  * CS 3GC3
- * Final Project - main.cpp
+ * Final Project - bullet.cpp
  */
 
 /* Mac Imports */
-    //moved to bullet.h
+#include <GLUT/glut.h>
+#include <stdio.h>
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
 
 /* Generic Imports */
 #include <time.h>
@@ -18,15 +21,16 @@
 #include <sstream>
 #include <cmath>
 #include <vector>
+#include <stdio.h>
 
-/* New Class Imports */
-#include "bullet.h"
+#include <algorithm>
 
 /* Define Special Keys */
 #define ESCAPE 27
 #define SPACEBAR 32
 
 /* Global Variables */
+bool flag = false;
 bool movingRight = true;
 int asteroid;
 int screenSizeX = 750;
@@ -40,56 +44,100 @@ float xPos = 10.0f, yPos = 10.0f, zPos = 10.0f;
 float xRot = 40.0f, yRot = -40.0f, angle = 0.0f;
 float lastX, lastY;
 
-/* Create Vector Lists */
-//std::vector<bullet> bulletList;
-vector<bullet> bulletList;
+//positions of the cubes
+float positionX[10];
+float positionY[10];
+float positionZ[10];
 
-/* Create Objects */
-bullet* golden = new bullet(xPos, yPos, zPos, xRot, yRot, angle);
-
-//Sphere
-void sphere()
-{
-    glPushMatrix();
-    glColor3f(1.0, 0, 0);
-    glTranslatef(0.0f, 0.0f, 0.0f); //Start Position of Sphere
-    glutSolidSphere(0.15, 50, 50);
-    glPopMatrix();
-}
-
-//Spin Sphere
-void moveSphere()
-{
-    if (!movingRight) {
-        
-        if (translate >= 0.0f){
-            translate -= 0.01;
-        }else{
-            movingRight = !movingRight;
-        }
-        
-    }else{
-        
-        if (translate <= 2.5f){
-             translate += 0.01;
-        }else{
-            movingRight = !movingRight;
-        }
-        
-    }
-    glutPostRedisplay();
-}
-
-/* Randomize Asteroid Position */
-int randomAsteroid()
-{
-    /* Randomize Asteroid Poisitions */
-    float randomX = (rand() % screenSizeX + 1);
-    float randomY = (rand() % screenSizeY + 1);
-    float randomZ = (rand() % screenSizeY + 1);
+class Bullet{
+public:
+    float x, y, z;
+    float dx, dy, dz;
+	float speed;
+	float rx, ry, rz;
+	float size, cr, cg, cb, age;
+	int direction;
+	double maximumHeight;
+	float gravity, gravityTemp;
+	float windFactor;
     
-    return randomX, randomY, randomZ;
-}
+public:
+	Bullet(){           //constructor
+        speed=0.01;
+        size=0.2;
+        age=5000;
+        direction=1;
+        gravity=0.05;
+        gravityTemp=2;
+        windFactor=0;
+        
+        maximumHeight=100;
+        cr=((double)rand()/(RAND_MAX));
+        cg=((double)rand()/(RAND_MAX));
+        cb=((double)rand()/(RAND_MAX));
+        
+        x=xPos;//0;//(rand()%5);
+        y=yPos;//0;//(rand()%5)+2;
+        z=zPos;//0;//(rand()%5);
+        cout<<"initial fire position, x:"<<x<<" y:"<<y<<" z:"<<z<<endl;
+        cout<<"xrot:"<<xRot<<" yrot:"<<yRot<<endl;
+        
+        
+        float xrotrad, yrotrad;
+      	yrotrad = (yRot / 180 * 3.141592654f); //xrot=40, yrot=-40
+       	xrotrad = (xRot / 180 * 3.141592654f);
+        float xPos2,yPos2,zPos2;
+        xPos2=xPos;
+        yPos2=yPos;
+        zPos2=zPos;
+        
+        xPos2 += float(sin(yrotrad)) ;
+        zPos2 -= float(cos(yrotrad)) ;
+        yPos2 -= float(sin(xrotrad)) ;
+        
+        dx=(xPos2-x)*100;//positionX[0]*10-x;
+        dy=(yPos2-y)*100;//positionY[0]*10-y;
+        dz=(zPos2-z)*100;//positionZ[0]*10-z;
+        cout<<"dx:"<<dx<<" dy:"<<dy<<" dz:"<<dz<<endl;
+        
+        
+	}
+    
+void update()
+{
+        glPushMatrix();
+        glColor3f (1.0, 1.0, 0.0);
+        //glTranslatef(-cnt, cnt, -cnt);
+        glTranslatef(x, y, z);
+        //cout<<"current position, x:"<<x<<" y:"<<y<<" z:"<<z<<endl;
+    	glutSolidSphere(size, 20, 20);
+        glPopMatrix();
+		
+        /*float xrotrad, yrotrad;
+         yrotrad = (yrot / 180 * 3.141592654f); //xrot=40, yrot=-40
+         xrotrad = (xrot / 180 * 3.141592654f);
+         xpos += float(sin(yrotrad)) ;
+         zpos -= float(cos(yrotrad)) ;
+         ypos -= float(sin(xrotrad)) ;*/
+        
+        //xpos += float(sin(yrotrad)) ;
+        //zpos -= float(cos(yrotrad)) ;
+        //ypos -= float(sin(xrotrad)) ;
+        
+        
+        x=x+dx*speed;//x+(xpos*10)*speed;//x+(positionX[0] * 10)*speed;
+        y=y+dy*speed;//y+(ypos*10)*speed;//y+(positionY[0] * 10)*speed;
+        z=z+dz*speed;//zpos*10)*speed;//z+(positionZ[0] * 10)*speed;
+        //cout<<"bx:"<<bx<<" bz:"<<bz<<endl;
+        
+        if(abs(x-(positionX[0]*10))<1 && abs(z-(positionZ[0]*10))<1){
+            cout<<"hit"<<" x:"<<x<<" z:"<<z<<endl;
+        }
+    }
+};
+
+//Global Variable - Bullet List for Bullet Structure
+vector<Bullet> bulletList;
 
 //When Called, Draw's XYZ Axes
 void drawAxis()
@@ -109,6 +157,31 @@ void drawAxis()
     glVertex3f(0, 0, 500);
     
 	glEnd();
+}
+
+//draw the cube
+void cube (void) {
+    for (int i=0;i<5;i++)
+    {
+        glPushMatrix();
+        if(i==0)
+            glColor3f (1.0, 0.0, 0.0);
+        else
+            glColor3f (0.0, 0.0, 1.0);
+        
+        glTranslated(positionX[i] * 10, positionY[i] * 10, positionZ[i] *10); //translate the cube glTranslated(-positionX[i] * 10, 0, -positionZ[i] *10);
+        if(flag==false){ //only prints out position of cubes once
+            cout<<"x:"<<positionX[i] * 10<<" y:"<<positionY[i] *10<<" z:"<<positionZ[i] *10<<endl;
+            
+        }
+        glutSolidSphere(2,20,20); //draw the cube
+        glPopMatrix();
+        
+        positionX[i]+=0.01;
+        positionY[i]+=0.01;
+        positionZ[i]+=0.01;
+    }
+	flag = true;
 }
 
 /* Object Coordinates Structure- XYZ Position Floats */
@@ -243,47 +316,61 @@ int loadObject(const char* filename)
 	return num;
 }
 
-/* Display Function */
-void display()
-{
-    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    gluLookAt(10, 10, 12, 0, 0, 0, 0, 1, 0);
-    
-    drawAxis();
-    
-//    glPushMatrix();
-//    glTranslatef(translate, 0.0f, 0.0f);
-//    sphere();
-//    glPopMatrix();
-    
-    for(int i = 0; i < numOfAsteroids; i++)
-    {
-        glPushMatrix();
-        glColor3f(0.35, 0.35, 0.35);
-        glScalef(0.5, 0.5, 0.5);
-        glTranslatef((rand() % 25 + 1), 0, 0);
-        glCallList(asteroid);	//Draw 3D Asteroid Mesh
-        glPopMatrix();
-    }
-    
-    for(int i = 0; i < bulletList.size(); i++){
-        //DO SOMETHING
-    }
-    
-    glutPostRedisplay();
-    glutSwapBuffers();
-    
-    angle++;
-}
-
 /* Camera Function */
 void camera (void)
 {
     glRotatef(xRot, 1.0, 0.0, 0.0);  //rotate our camera on the x-axis (left and right)
     glRotatef(yRot, 0.0, 1.0, 0.0);  //rotate our camera on the  y-axis (up and down)
     glTranslated(-xPos, -yPos, -zPos); //translate the screen to the position of our camera
+}
+
+/* Display Function */
+void randomAsteroids (void) { //set the positions of the asteroids
+    for (int i = 0; i < numOfAsteroids; i++)
+    {
+        positionX[i] = rand()%5 + 5;
+        positionY[i] = rand()%5 + 5;
+        positionZ[i] = rand()%5 + 5;
+        cout<<"x:"<<positionX[i]<<" y:"<<positionY[i]<<" z:"<<positionZ[i]<<endl;
+
+        glPushMatrix();
+        glColor3f(0.35, 0.35, 0.35);
+        glScalef(5,5,5);
+        glRotatef(angle, 1, 1, 1);
+        glTranslatef(0,0,0);
+        glCallList(asteroid);	//Draw 3D Asteroid Mesh
+        glPopMatrix();
+    }
+}
+
+void collisonCheck(){
+	for(int i=0;i<5;i++){
+		if ((abs(xPos-positionX[i]*10)<2)&&(abs(yPos-positionY[i]*10)<2)&&(abs(zPos-positionZ[i]*10)<2)){
+			cout<<"collision"<<endl;
+			exit(0);
+		}
+	}
+}
+
+/* Display Function */
+void display()
+{
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    
+    camera();
+    drawAxis();
+    randomAsteroids();
+    
+	for(int i=0;i<bulletList.size();i++){
+        bulletList[i].update();
+    }
+    
+    glutPostRedisplay();
+    glutSwapBuffers();
+    
+    angle++;
 }
 
 /* Keyboard Function - Takes user input and applies to pre-created methods */
@@ -295,10 +382,59 @@ void keyboard(unsigned char key, int x, int y)
         exit(0);
     }
     
-    if (key == SPACEBAR){
-        bulletList.push_back(*new bullet(xPos, yPos, zPos, xRot, yRot, angle));
-        golden -> shoot(xPos, yPos, zPos);
+    if (key == 'w')   //forward
+    {
+        float xrotrad, yrotrad;
+        yrotrad = (yRot / 180 * 3.141592654f); //xrot=40, yrot=-40
+        //cout<<"yrotrad:"<<yrotrad<<endl;
+        xrotrad = (xRot / 180 * 3.141592654f);
+        xPos += float(sin(yrotrad)) ;
+        zPos -= float(cos(yrotrad)) ;
+        yPos -= float(sin(xrotrad)) ;
+        collisonCheck();
     }
+    
+    if (key == 's')     //backward
+    {
+        float xrotrad, yrotrad;
+        yrotrad = (yRot / 180 * 3.141592654f); //xrot=40, yrot=-40
+        xrotrad = (xRot / 180 * 3.141592654f);
+        xPos -= float(sin(yrotrad));
+        zPos += float(cos(yrotrad)) ;
+        yPos += float(sin(xrotrad));
+        //  cout<<"xpos:"<<xPos<<" ypos:"<<yPos<<" zpos:"<<zPos<<endl;
+        collisonCheck();
+    }
+    
+    if (key == 'd')     //right
+    {
+        float yrotrad;
+        yrotrad = (yRot / 180 * 3.141592654f);
+        xPos += float(cos(yrotrad)) * 0.2;
+        zPos += float(sin(yrotrad)) * 0.2;
+        collisonCheck();
+    }
+    
+    if (key == 'a')     //left
+    {
+        float yrotrad;
+        yrotrad = (yRot / 180 * 3.141592654f);
+        xPos -= float(cos(yrotrad)) * 0.2;
+        zPos -= float(sin(yrotrad)) * 0.2;
+        collisonCheck();
+    }
+    
+	if (key == SPACEBAR)     //fire bullet
+	{
+		bulletList.push_back(*new Bullet);
+	}
+    
+    if (key == ESCAPE) //escape key
+    {
+        printf("%s\n", "Program Terminated!");
+        exit(0);
+    }
+    
 }
 
 /* Mouse Function */
@@ -312,23 +448,28 @@ void mouseMovement(int x, int y)
     yRot += (float) diffX;    //set the xrot to yrot with the addition of the difference in the x position
 }
 
+/* Mouse Method */
+void mouse(int btn, int state, int x, int y)
+{
+    // LMB Clicked
+    if(btn == GLUT_LEFT_BUTTON && state == GLUT_DOWN){
+        bulletList.push_back(*new Bullet);
+    }
+}
+
 //Initialize Function - Initializes the Colour, Matrix Mode, & Perspective
 void init()
 {
-    
 	glClearColor(0, 0, 0, 0); //Clear's Colour
-    
     // Enables the Z-buffer test, so items appear correctly
 	glEnable(GL_DEPTH_TEST);
 	glFrontFace(GL_CCW);
 	glCullFace(GL_BACK);
-    
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
     gluPerspective(45, 1, 1, 200);
-    
     asteroid = loadObject("asteroid.obj");	//load the test.obj file
-    
+    randomAsteroids();
 }
 
 //Main Method
@@ -336,19 +477,17 @@ int main(int argc, char** argv){
     
     // Glut Initialization - Setting window size, display mode, create the window and its name
 	glutInit(&argc, argv);
-	glutInitWindowSize(screenSizeX, screenSizeY);
-    glutInitWindowPosition(100, 100);
+	glutInitWindowSize(screenSizeX, screenSizeY);//750x750
+   	glutInitWindowPosition(100, 100);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 	glutCreateWindow("Asteroids");
     
-    // Creates the initial view
-    init();
-    
     // Glut calls keyboard, display and spin functions - created above
 	glutKeyboardFunc(keyboard);
+    glutMouseFunc(mouse);
     glutPassiveMotionFunc(mouseMovement); //check for mouse movement
     glutDisplayFunc(display);
-    glutIdleFunc(moveSphere);
+    glutIdleFunc(init);
     
 	// Begins the program
 	glutMainLoop();

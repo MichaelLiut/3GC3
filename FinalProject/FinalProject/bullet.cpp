@@ -51,9 +51,9 @@ bullet::bullet(float xPos, float yPos, float zPos, float xRot, float yRot, float
     yPosNew -= float(cos(yRotRad));
     zPosNew -= float(sin(xRotRad));
     
-    dx = (xPosNew - x) * 100;
-    dy = (yPosNew - y) * 100;
-    dz = (zPosNew - z) * 100;
+    dx = (xPosNew - x) * 100;//positionx[0]*10-x;
+    dy = (yPosNew - y) * 100;//positiony[0]*10-y;
+    dz = (zPosNew - z) * 100;//positionz[0]*10-z;
     
 }
 
@@ -66,12 +66,5 @@ void bullet::shoot(float xPos, float yPos, float zPos)
         glTranslatef(-xPos, yPos, -zPos);
         glutWireSphere(2, 20, 20);
     glPopMatrix();
-    
-    //xPos += (positionx[0 + 5] * 10)*0.001;
-    //zPos += (positionz[0 + 5] *10)*0.001;
-    
-    //if(fabs(bx-(positionx[5]*10))<5 && fabs(bz-(positionz[5]*10))<5){
-    //    cout<<"hit"<<" bx:"<<bx<<" bz:"<<bz<<endl;
-    //}
     
 }
